@@ -1,0 +1,144 @@
+/* src/style/Header.css (updated) */
+.header {
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 10px 0 0;
+  display: none;
+  color: var(--primary-dark);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary-dark);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.logo-header-img {
+  
+  width: 200px !important;
+  height: auto;
+}
+
+.place{
+
+  width: 250px;
+
+}
+
+.logo:hover {
+  color: var(--primary-color);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-actions .btn {
+  white-space: nowrap;
+}
+
+.btn-primary{
+  border:none !important;
+  color: #fff !important;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .logo-header-img {
+    width: 150px !important;
+  }
+
+  .header-actions {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .auth-actions {
+    flex-wrap: wrap;
+    width: 250px;
+    margin-right: 50px;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+}
+
+
+@media (max-width:1700px) {
+
+  .logo{
+    margin-left: 100px;
+  }
+  
+}
+
+.theme-toggle {
+  background-color: var(--gray-light);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--gray-medium);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .header {
+  background-color: #061927;
+  border-bottom-color: #444;
+}
+
+
+
+[data-theme="dark"] .theme-toggle {
+  background-color: #333;
+  border-color: #444;
+  color: #fff;
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background-color: #444;
+}
+

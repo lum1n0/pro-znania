@@ -1,0 +1,551 @@
+/* Основные стили */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+ font-family: 'CustomVerdana', Arial, sans-serif;
+
+  background-color: #ffffff;
+  color: #333;
+  line-height: 1.6;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+
+/* Глобальные стили для списков в редакторе */
+.ck-content ol {
+  list-style-type: decimal !important;
+  padding-left: 40px !important;
+  margin: 10px 0 !important;
+}
+
+.ck-content ul {
+  list-style-type: disc !important;
+  padding-left: 40px !important;
+  margin: 10px 0 !important;
+}
+
+.ck-content li {
+  margin: 5px 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* Для темной темы */
+[data-theme="dark"] .ck-content ol,
+[data-theme="dark"] .ck-content ul {
+  color: #e0e0e0 !important;
+}
+
+[data-theme="dark"] .ck-content li {
+  color: #e0e0e0 !important;
+}
+/* Основной контент */
+.content {
+  flex: 1;
+
+  min-height: calc(100vh - 150px); /* Учитываем высоту хедера и футера */
+  transition: margin-left 0.3s ease;
+}
+
+/* Отступы для контента при наличии сайдбара */
+.content.with-sidebar {
+  margin-left: 250px; /* Ширина обычного сайдбара */
+}
+
+.content.with-guest-sidebar {
+  margin-left: 250px; /* Ширина гостевого сайдбара */
+}
+
+/* Кнопки */
+.btn {
+  padding: 10px 20px;
+  border: 1px solid #000;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn:hover {
+  background-color: #f5f5f5;
+}
+
+.btn-primary {
+  background-color: #9ad2d6;
+  color: #0E737B;
+  border-color: #0E737B;
+}
+
+.btn-primary:hover {
+  background-color: #0E737B;
+  color: #fff;
+}
+
+.btn-danger {
+  background-color: #ff6b6b !important;
+  color: #fff;
+  border-color: #ff5252;
+}
+
+.btn-danger:hover {
+  background-color: #ff5252;
+}
+
+/* Формы */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #0E737B;
+  box-shadow: 0 0 0 2px rgba(14, 115, 123, 0.2);
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 14px;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #000;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fff;
+}
+
+/* Контейнеры */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.card {
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+/* Таблицы */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #000;
+}
+
+.table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Пагинация */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  border: 1px solid #000;
+  background-color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:hover {
+  background-color: #f5f5f5;
+}
+
+.pagination button.active {
+  background-color: #9ad2d6;
+  color: #0E737B;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Модальные окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2030;
+}
+
+.modal {
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  color: #666;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
+/* Дропзон */
+.dropzone {
+  border: 2px dashed #000;
+  border-radius: 4px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropzone:hover {
+  border-color: #0E737B;
+  background-color: #f9f9f9;
+}
+
+.dropzone.active {
+  border-color: #9ad2d6;
+  background-color: #f0f8f9;
+}
+
+/* Уведомления */
+.alert {
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.alert-error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+.alert-success {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+  border: 1px solid #4caf50;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #2196f3;
+}
+
+/* Загрузка */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.loading-spinner {
+  font-size: 18px;
+  color: #0E737B;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0E737B;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Утилиты */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 10px; }
+.mb-2 { margin-bottom: 20px; }
+.mb-3 { margin-bottom: 30px; }
+
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.mt-3 { margin-top: 30px; }
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.gap-1 {
+  gap: 10px;
+}
+
+.gap-2 {
+  gap: 20px;
+}
+
+/* Чат стили */
+/* .main-container.chat-open .content {
+  margin-right: 300px; 
+} */
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .content.with-sidebar,
+  .content.with-guest-sidebar {
+    margin-left: 0;
+  }
+
+  /* .main-container.chat-open .content {
+    margin-right: 0;
+  } */
+
+  .container {
+    padding: 0 10px;
+  }
+
+  .modal {
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+}
+
+/* Скрытие скроллбара в Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #9ad2d6 #f1f1f1;
+}
+
+/* Скрытие скроллбара в WebKit */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9ad2d6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0E737B;
+}
+
+/* Основные цвета проекта */
+:root {
+  --primary-color: #9ad2d6;
+  --primary-dark: #0E737B;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #000000;
+  --gray-light: #f5f5f5;
+  --gray-medium: #cccccc;
+}
+
+/* Утилиты flexbox */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+
+.gap-4 {
+  gap: 16px;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.p-4 {
+  padding: 16px;
+}
+
+.shadow {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.border {
+  border: 1px solid var(--border-color);
+}
+
+.rounded {
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .content{
+  background-color: #061927;
+}
+
+[data-theme="dark"] .main-container{
+
+  background-color: #061927;
+
+}
+
+[data-theme="dark"] span{
+
+  color: white;
+
+}
+
+[data-theme="dark"] a{
+
+  color: white;
+
+}
+
+[data-theme="dark"] svg {
+
+  color: white;
+
+}
+
+
+[data-theme="dark"]  .lucide-book-open{
+
+  color: #1890ff;
+
+}

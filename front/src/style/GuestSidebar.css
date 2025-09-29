@@ -1,0 +1,347 @@
+/* src/style/GuestSidebar.css (updated) */
+.guest-sidebar {
+  width: 250px;
+  height: 100vh;
+  background: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition: width 0.3s ease, left 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.guest-sidebar-collapsed {
+  width: 80px;
+}
+
+.guest-sidebar-header {
+  padding: 29px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.guest-sidebar-brand {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #495057;
+  gap: 10px;
+}
+
+.guest-sidebar-brand svg {
+  min-width: 20px;
+}
+
+.guest-sidebar-toggle {
+  background: #e9ecef;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.guest-sidebar-toggle:hover {
+  background: #ced4da;
+}
+
+.guest-toggle-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.guest-sidebar-collapsed .guest-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.guest-nav-list {
+  display: flex;
+  align-items: left;
+  justify-content: center;
+  gap: 20px;
+  flex-direction: column;
+  list-style: none;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.guest-nav-item-content {
+  text-decoration: none;
+  color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guest-nav-item {
+  margin-left: 20px;
+  padding: 0 !important;
+  display: flex;
+  gap: 5px;
+}
+
+.lucide-file-text{
+  flex-shrink: 0;
+}
+
+.guest-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.guest-nav-link:hover {
+  background: #e9ecef;
+}
+
+.guest-nav-icon {
+  min-width: 16px;
+}
+
+/* Поиск */
+.guest-search-item .guest-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #f1f3f5;
+  border-radius: 6px;
+}
+
+.guest-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #495057;
+  font-size: 14px;
+  flex: 1;
+}
+
+.guest-search-input::placeholder {
+  color: #868e96;
+}
+
+.guest-clear-search {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #868e96;
+  padding: 0;
+}
+
+.guest-clear-search:hover {
+  color: #495057;
+}
+
+/* Выпадающие меню */
+.guest-dropdown-toggle {
+  cursor: pointer;
+}
+
+.guest-dropdown-icon {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.guest-dropdown-menu {
+  display: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 4px;
+}
+
+.guest-active-dropdown .guest-dropdown-menu {
+  display: block;
+  padding-left: 50px;
+}
+
+.guest-category-item{
+  display: flex;
+}
+
+.guest-search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 4px;
+  display: block;
+}
+
+.guest-dropdown-item-wrapper {}
+
+.guest-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.guest-dropdown-link:hover {
+  background: #e9ecef;
+}
+
+.guest-dropdown-link.guest-active {
+  color: #149aa3;
+  font-weight: 500;
+}
+
+.guest-dropdown-link.guest-deleted {
+  color: #868e96 !important;
+  text-decoration: line-through;
+  background: transparent;
+}
+
+.guest-dropdown-link.guest-error {
+  color: #dc3545;
+}
+
+/* Подменю */
+.guest-sub-menu {
+  list-style: none;
+  margin-top: 4px;
+}
+
+.guest-category-header {
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+/* Удалённые элементы */
+.guest-deleted {
+  color: #868e96 !important;
+  background: transparent !important;
+  text-decoration: line-through;
+}
+
+/* Сворачивание */
+.guest-sidebar-collapsed .guest-sidebar-brand span,
+.guest-sidebar-collapsed .guest-nav-link span,
+.guest-sidebar-collapsed .guest-dropdown-icon,
+.guest-sidebar-collapsed .guest-search-input,
+.guest-sidebar-collapsed .guest-clear-search,
+.guest-sidebar-collapsed .guest-dropdown-menu,
+.guest-sidebar-collapsed .guest-search-results {
+  display: none;
+}
+
+.guest-sidebar-collapsed .guest-nav-item {
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.guest-sidebar-collapsed .guest-nav-link {
+  justify-content: center;
+  padding: 10px;
+  margin: 0;
+}
+
+/* Скроллбар */
+.guest-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.guest-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.guest-sidebar::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+
+.guest-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+.category-icon {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  vertical-align: middle;
+}
+
+.guest-dropdown-link.guest-active {
+  color: #149aa3;
+  font-weight: 500;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .guest-sidebar {
+    position: fixed;
+    left: -250px;
+    width: 250px !important;
+  }
+
+  .guest-sidebar.open {
+    left: 0;
+  }
+
+  .guest-sidebar-collapsed {
+    width: 250px !important; /* Disable collapse on mobile */
+  }
+
+  .guest-sidebar-toggle {
+    display: none; /* Hide collapse button on mobile */
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .guest-nav-link,
+  .guest-dropdown-link {
+    font-size: 14px;
+  }
+}
+
+[data-theme="dark"] .guest-sidebar {
+  background-color: #1a1a1a;
+  border-right-color: #444;
+}
+
+[data-theme="dark"] .guest-nav-link{
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .guest-nav-link:hover{
+  background-color: #333;
+}

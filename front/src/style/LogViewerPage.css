@@ -1,0 +1,219 @@
+/* LogViewerPage.css */
+.log-viewer-page {
+  padding: 2rem 0;
+  color: #333;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  background-color: #f8f9fc;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0e737b;
+  margin: 0;
+}
+
+/* Фильтры */
+.filters-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #0e737b;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #9ad2d6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  align-self: flex-end;
+}
+
+.btn-primary:hover {
+  background-color: #0e737b;
+}
+
+/* Таблица логов */
+.logs-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.logs-table th {
+  background-color: #f0f4f8;
+  color: #0e737b;
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+.logs-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.logs-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+/* Badges */
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.level-INFO {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.level-WARN {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.level-ERROR {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.level-DEBUG {
+  background-color: #d1ccf1;
+  color: #4a3a7a;
+}
+
+/* Метаданные */
+.meta-preview {
+  margin: 0;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12px;
+  max-height: 100px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Нет логов */
+.no-logs {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  padding: 40px;
+}
+
+/* Пагинация */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: #555;
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .logs-table th,
+  .logs-table td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .filters-form {
+    flex-direction: column;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .meta-preview {
+    font-size: 11px;
+  }
+}
+
+[data-theme="dark"] .log-viewer-page {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .logs-table-container {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .logs-table th {
+  background-color: #333;
+  color: #fff;
+}

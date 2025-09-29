@@ -1,0 +1,294 @@
+/* FeedbackAdminPage.css — Уникальные классы */
+:root {
+  --feedback-admin-primary-color: #9ad2d6;
+  --feedback-admin-primary-dark: #0e737b;
+  --feedback-admin-background-color: #ffffff;
+  --feedback-admin-text-color: #333333;
+  --feedback-admin-border-color: #e0e0e0;
+  --feedback-admin-gray-light: #f5f5f5;
+  --feedback-admin-gray-medium: #cccccc;
+  --feedback-admin-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --feedback-admin-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --feedback-admin-shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.12);
+  --feedback-admin-transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --feedback-admin-transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --feedback-admin-radius-sm: 6px;
+  --feedback-admin-radius-md: 10px;
+  --feedback-admin-radius-lg: 16px;
+}
+
+.feedback-admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.feedback-admin-page {
+  padding: 2rem 0;
+  color: var(--feedback-admin-text-color);
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+
+}
+
+@keyframes feedback-admin-fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feedback-admin-page h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--feedback-admin-primary-dark);
+  margin-bottom: 1.8rem;
+  text-align: center;
+  background: linear-gradient(90deg, var(--feedback-admin-primary-color), var(--feedback-admin-primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Таблица */
+.feedback-admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1.5rem;
+  background: white;
+  border-radius: var(--feedback-admin-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--feedback-admin-shadow-md);
+  animation: feedback-admin-slideUpTable 0.5s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes feedback-admin-slideUpTable {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feedback-admin-table th,
+.feedback-admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--feedback-admin-border-color);
+  text-align: left;
+  transition: background-color 0.3s ease;
+}
+
+.feedback-admin-table th {
+  background-color: var(--feedback-admin-gray-light);
+  font-weight: 600;
+  color: var(--feedback-admin-primary-dark);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.feedback-admin-table tbody tr:hover {
+  background-color: rgba(154, 210, 214, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.feedback-admin-table tr.feedback-admin-row--answered {
+  background-color: #f0f8f0;
+}
+
+.feedback-admin-table tr.feedback-admin-row--unanswered {
+  background-color: #fff8f0;
+}
+
+.feedback-admin-title {
+  font-weight: 500;
+}
+
+.feedback-admin-desc {
+  max-width: 300px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #555;
+}
+
+/* Статус */
+.feedback-admin-status-badge {
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.feedback-admin-status-badge--answered {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.feedback-admin-status-badge--unanswered {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Кнопки */
+.feedback-admin-status-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--feedback-admin-radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--feedback-admin-transition-normal);
+  min-width: 120px;
+}
+
+.feedback-admin-status-button--answered {
+  background-color: #28a745;
+  color: white;
+}
+
+.feedback-admin-status-button--answered:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: var(--feedback-admin-shadow-sm);
+}
+
+.feedback-admin-status-button--unanswered {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.feedback-admin-status-button--unanswered:hover:not(:disabled) {
+  background-color: #e0a800;
+  transform: translateY(-2px);
+  box-shadow: var(--feedback-admin-shadow-sm);
+}
+
+.feedback-admin-status-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Загрузка и пустые состояния */
+.feedback-admin-loading,
+.feedback-admin-no-feedback {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--feedback-admin-primary-dark);
+  font-style: italic;
+  background-color: #f8f9fc;
+  border-radius: var(--feedback-admin-radius-md);
+  margin: 1.5rem 0;
+}
+
+.feedback-admin-no-feedback {
+  color: #666;
+}
+
+/* Пагинация */
+.feedback-admin-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2rem;
+  padding: 12px 20px;
+  background-color: var(--feedback-admin-gray-light);
+  border-radius: var(--feedback-admin-radius-md);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-admin-pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--feedback-admin-border-color);
+  background-color: white;
+  color: var(--feedback-admin-primary-dark);
+  border-radius: var(--feedback-admin-radius-sm);
+  cursor: pointer;
+  transition: all var(--feedback-admin-transition-fast);
+  font-size: 14px;
+  min-width: 90px;
+}
+
+.feedback-admin-pagination button:hover:not(:disabled) {
+  background-color: var(--feedback-admin-primary-color);
+  color: white;
+  border-color: var(--feedback-admin-primary-color);
+  transform: translateY(-1px);
+  box-shadow: var(--feedback-admin-shadow-sm);
+}
+
+.feedback-admin-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.feedback-admin-pagination span {
+  font-weight: 600;
+  color: var(--feedback-admin-primary-dark);
+  font-size: 14px;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+  .feedback-admin-page h1 {
+    font-size: 1.8rem;
+  }
+
+  .feedback-admin-table th,
+  .feedback-admin-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .feedback-admin-desc {
+    max-width: 150px;
+  }
+
+  .feedback-admin-status-button {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: auto;
+    width: 100%;
+  }
+
+  .feedback-admin-pagination {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .feedback-admin-pagination span {
+    font-size: 13px;
+  }
+}
+
+
+
+[data-theme="dark"] .feedback-admin-page {
+  background-color: #061927;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .feedback-admin-table {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .feedback-admin-table th {
+  background-color: #333;
+  color: #fff;
+}
+
+[data-theme="dark"] .pages{
+
+  color: #666;
+
+}

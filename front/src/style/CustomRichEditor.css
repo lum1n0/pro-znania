@@ -1,0 +1,424 @@
+/* Glassmorphism variables */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --glass-backdrop: blur(4px);
+  --glass-text: #333;
+  --glass-hover: rgba(255, 255, 255, 0.4);
+  --glass-active: rgba(255, 255, 255, 0.6);
+  --glass-sep: rgba(255, 255, 255, 0.2);
+  --glass-btn-hover: rgba(0, 0, 0, 0.05);
+  --glass-btn-active: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --glass-bg: rgba(30, 30, 30, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --glass-text: #e0e0e0;
+  --glass-hover: rgba(255, 255, 255, 0.1);
+  --glass-active: rgba(255, 255, 255, 0.2);
+  --glass-sep: rgba(255, 255, 255, 0.1);
+  --glass-btn-hover: rgba(255, 255, 255, 0.1);
+  --glass-btn-active: rgba(255, 255, 255, 0.2);
+}
+
+.glass-container {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop); /* For Safari */
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px; /* Более закругленные углы */
+  overflow: hidden;
+}
+
+.glass-toolbar {
+  background: transparent; /* Прозрачный фон для панели инструментов */
+  border-bottom: 1px solid var(--glass-border);
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.glass-editor {
+  background: transparent; /* Прозрачный фон для редактора */
+  min-height: 280px;
+  padding: 25px;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--glass-text);
+}
+
+.glass-dropdown {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.cre-root {
+  border: none; /* Убираем старую границу */
+  border-radius: 16px; /* Увеличиваем радиус */
+  background: transparent; /* Фон теперь у .glass-container */
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.cre-root:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Группы кнопок */
+.cre-toolbar-group {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+/* Кнопки панели инструментов */
+.cre-btn {
+  padding: 6px 10px;
+  border: 1px solid transparent; /* Прозрачная граница по умолчанию */
+  background: transparent; /* Прозрачный фон */
+  border-radius: 6px; /* Более закругленные кнопки */
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  color: var(--glass-text);
+  font-weight: 500;
+  box-shadow: none; /* Убираем тени кнопок */
+}
+
+.cre-btn:hover:not(:disabled) {
+  background: var(--glass-btn-hover);
+  border-color: var(--glass-border);
+  transform: translateY(-1px);
+}
+
+.cre-btn:active:not(:disabled) {
+  transform: translateY(0);
+  background: var(--glass-btn-active);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cre-btn.active {
+  background: var(--glass-active);
+  border-color: var(--glass-border);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.cre-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: transparent;
+}
+
+/* Разделители */
+.cre-sep {
+  width: 1px;
+  background: var(--glass-sep);
+  margin: 0 4px;
+  align-self: stretch;
+}
+
+/* Выпадающий список размера шрифта */
+.cre-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+}
+
+.cre-font-size-label {
+  font-size: 14px;
+}
+
+.cre-dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.cre-dropdown-btn.active .cre-dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.cre-font-size-dropdown {
+  position: absolute;
+  top: 50px;
+  left: 180px;
+  z-index: 1000;
+  border-radius: 8px;
+  padding: 6px 0;
+  margin-top: 6px;
+  width: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cre-font-size-option {
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--glass-text);
+  transition: background 0.2s ease;
+}
+
+.cre-font-size-option:hover {
+  background: var(--glass-hover);
+}
+
+/* Выпадающий список таблиц */
+.cre-table-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.cre-table-dropdown {
+  position: absolute;
+  top: 100%;
+  left: -170px;
+  z-index: 1000;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 6px;
+  width: 200px;
+}
+
+.cre-table-grid {
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.cre-table-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.cre-table-cell {
+  width: 16px;
+  height: 16px;
+  background: rgba(185, 185, 185, 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+[data-theme="dark"] .cre-table-cell {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cre-table-cell:hover,
+.cre-table-cell.active {
+  background: #3b82f6;
+  border-color: #2563eb;
+  transform: scale(1.1);
+}
+
+.cre-table-size {
+  text-align: center;
+  font-size: 14px;
+  color: var(--glass-text);
+  font-weight: 500;
+  padding: 6px 0 2px 0;
+  border-top: 1px solid var(--glass-sep);
+}
+
+/* Плейсхолдер */
+.cre-editor:empty:before {
+  content: attr(data-placeholder);
+  color: var(--glass-text);
+  opacity: 0.6; /* Делаем плейсхолдер менее контрастным */
+  font-style: italic;
+}
+
+/* Скрытое поле ввода файла */
+.cre-hidden {
+  display: none;
+}
+
+/* === Таблицы в редакторе === */
+.cre-editor table {
+  border-collapse: collapse; /* Используем collapse для четких границ */
+  width: 100%;
+  margin: 16px 0;
+  border: 1px solid #ccc; /* Всегда видимая внешняя граница */
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cre-editor td,
+.cre-editor th {
+  border: 1px solid #ccc; /* Всегда видимые границы ячеек */
+  padding: 12px 16px;
+  text-align: left;
+  background: transparent;
+  min-width: 80px; /* Минимальная ширина ячеек */
+}
+
+.cre-editor th {
+  background: #f8f9fa; /* Светлый фон для заголовков */
+  font-weight: 600;
+  color: #333;
+}
+
+.cre-editor tr:nth-child(even) td {
+  background: #f8f9fa; /* Альтернативный фон для четных строк */
+}
+
+.cre-editor tr:hover td {
+  background: #e9ecef; /* Подсветка при наведении */
+}
+
+/* Убираем двойные границы */
+.cre-editor td:first-child,
+.cre-editor th:first-child {
+  border-left: 1px solid #ccc;
+}
+
+.cre-editor td:last-child,
+.cre-editor th:last-child {
+  border-right: 1px solid #ccc;
+}
+
+/* Обертка для таблицы */
+.cre-editor figure.table {
+  margin: 16px 0;
+  padding: 0;
+  border: none;
+  display: table;
+}
+
+/* Темная тема для таблиц */
+[data-theme="dark"] .cre-editor table {
+  border: 1px solid #444;
+  background: #2d2d2d;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .cre-editor td,
+[data-theme="dark"] .cre-editor th {
+  border: 1px solid #444;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .cre-editor th {
+  background: #3a3a3a;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .cre-editor tr:nth-child(even) td {
+  background: #333333;
+}
+
+[data-theme="dark"] .cre-editor tr:hover td {
+  background: #3d3d3d;
+}
+
+/* Адаптивность таблиц */
+@media (max-width: 768px) {
+  .cre-editor table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .cre-editor td,
+  .cre-editor th {
+    min-width: 60px;
+    padding: 8px 12px;
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .cre-toolbar {
+    gap: 2px;
+    padding: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cre-btn {
+    padding: 4px 8px;
+    min-width: 32px;
+    height: 32px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .cre-editor {
+    min-height: 200px;
+    padding: 15px;
+    font-size: 15px;
+  }
+
+  .cre-table-cell {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .cre-toolbar-group {
+    gap: 1px;
+  }
+}
+
+/* Темная тема для редактора */
+[data-theme="dark"] .cre-editor {
+  color: var(--glass-text);
+}
+
+[data-theme="dark"] .cre-editor:empty:before {
+  color: var(--glass-text);
+  opacity: 0.5;
+}
+
+/* Темная тема для таблиц */
+[data-theme="dark"] .cre-editor td, 
+[data-theme="dark"] .cre-editor th {
+  border-color: var(--glass-border);
+  background: var(--glass-bg);
+}
+
+[data-theme="dark"] .cre-editor figure.table {
+  border-color: var(--glass-border);
+  background: var(--glass-bg);
+}
+
+/* Стили для цитаты (blockquote) - должны совпадать с теми, что на странице просмотра */
+.cre-editor blockquote {
+  border-left: 4px solid #3498db;
+  margin: 20px 0;
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  font-style: italic;
+  color: #555;
+  position: relative;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .cre-editor blockquote {
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+  border-left-color: #5dade2;
+}

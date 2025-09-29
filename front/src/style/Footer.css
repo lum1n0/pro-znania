@@ -1,0 +1,23 @@
+.footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #000;
+  padding: 20px 0;
+  margin-top: auto;
+  z-index: 2;
+}
+
+.footer-content {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.footer-content p {
+  margin: 0;
+}
+
+[data-theme="dark"] .footer {
+  background-color: #020B1F;
+  border-top-color: #444;
+  color: #aaa;
+}

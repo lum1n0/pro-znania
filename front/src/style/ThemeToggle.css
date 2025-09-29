@@ -1,0 +1,355 @@
+/* ThemeToggle.css */
+.theme-toggle-container {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.darkmode-switch {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.darkmode-switch + label {
+  --width: 4rem;
+  --height: 2rem;
+  --padding: 0.2rem;
+  --foreground: #d3e3ea;
+  --background: #1f3d80;
+  --border-size: 1rem;
+  --border-color: rgba(120, 120, 120, 0.4);
+  --transition-time: 0.75s;
+  --transition-time-slow: 1s;
+  --transition-delay: 0.125s;
+  --transition: var(--transition-time) ease;
+  --transition-slow: var(--transition-time-slow) ease;
+  background-color: var(--background);
+  width: var(--width);
+  height: var(--height);
+  border-radius: var(--height);
+  display: flex;
+  align-items: center;
+  padding: var(--padding);
+  position: relative;
+  transition: var(--transition);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.darkmode-switch + label:after {
+  --shadow-size: calc(var(--padding) / 2);
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 0 var(--shadow-size) rgba(0, 0, 0, 0.5) inset;
+  border-radius: var(--height);
+  z-index: 3;
+}
+
+/* Stars */
+.darkmode-switch + label > .stars {
+  opacity: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  transition: var(--transition);
+}
+
+.darkmode-switch + label > .stars > * {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.darkmode-switch + label > .stars > *:before,
+.darkmode-switch + label > .stars > *:after {
+  --size: calc(var(--height) / 20);
+  content: "";
+  width: var(--size);
+  height: var(--size);
+  background-color: white;
+  display: block;
+  border-radius: 50%;
+  opacity: 0.1;
+  animation: blink 5s infinite;
+}
+
+@keyframes blink {
+  0% {
+    transform: scale(1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(0.5);
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+}
+
+/* Random stars properties */
+.darkmode-switch + label > .stars > *:nth-child(7n + 1) {
+  --rotation: 45deg;
+  --scale: 0.8;
+  --time: 4s;
+  --delay: 1s;
+  height: 80%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 2) {
+  --rotation: 120deg;
+  --scale: 1.2;
+  --time: 6s;
+  --delay: 2s;
+  height: 110%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 3) {
+  --rotation: 210deg;
+  --scale: 0.7;
+  --time: 5s;
+  --delay: 0.5s;
+  height: 70%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 4) {
+  --rotation: 300deg;
+  --scale: 1.1;
+  --time: 7s;
+  --delay: 3s;
+  height: 90%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 5) {
+  --rotation: 30deg;
+  --scale: 0.9;
+  --time: 5.5s;
+  --delay: 1.5s;
+  height: 85%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 6) {
+  --rotation: 160deg;
+  --scale: 1.3;
+  --time: 6.5s;
+  --delay: 0.2s;
+  height: 120%;
+}
+.darkmode-switch + label > .stars > *:nth-child(7n + 7) {
+  --rotation: 270deg;
+  --scale: 0.6;
+  --time: 4.5s;
+  --delay: 2.5s;
+  height: 65%;
+}
+
+/* Clouds */
+.darkmode-switch + label .clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.darkmode-switch + label .clouds > * {
+  position: absolute;
+  width: 50%;
+  height: 20%;
+  background-color: white;
+  border-radius: 50% 50% 0 0/100% 100% 0 0;
+  animation: clouds 15s linear infinite;
+}
+
+@keyframes clouds {
+  from {
+    left: -50%;
+  }
+  to {
+    left: 150%;
+  }
+}
+
+/* Random clouds properties */
+.darkmode-switch + label .clouds > *:nth-child(7n + 1) {
+  --time: 12s;
+  --delay: 2s;
+  --offset: 30%;
+  --scale: 0.8;
+  --opacity: 0.5;
+}
+.darkmode-switch + label .clouds > *:nth-child(7n + 2) {
+  --time: 18s;
+  --delay: 5s;
+  --offset: 60%;
+  --scale: 0.7;
+  --opacity: 0.4;
+}
+.darkmode-switch + label .clouds > *:nth-child(7n + 3) {
+  --time: 22s;
+  --delay: 0s;
+  --offset: 15%;
+  --scale: 0.6;
+  --opacity: 0.3;
+}
+
+.darkmode-switch + label .clouds > *:before,
+.darkmode-switch + label .clouds > *:after {
+  content: "";
+  height: 150%;
+  display: block;
+  width: 50%;
+  position: absolute;
+  background-color: white;
+  bottom: 0%;
+  left: 17%;
+  border-radius: 50%;
+}
+
+.darkmode-switch + label .clouds > *:after {
+  left: auto;
+  right: 15%;
+  width: 30%;
+  height: 100%;
+  top: -15%;
+}
+
+/* Dot (sun/moon) */
+.darkmode-switch + label > .dot {
+  --size: calc(var(--height) - (var(--padding) * 2));
+  width: var(--size);
+  height: var(--size);
+  position: absolute;
+  left: var(--padding);
+  border-radius: 50%;
+  transform: translateX(0);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.darkmode-switch + label > .dot > .circle {
+  background-color: var(--foreground);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: scale(0.99);
+  transition: var(--transition);
+}
+
+.darkmode-switch + label > .dot > .moon-dot {
+  position: absolute;
+  right: 0%;
+  width: 80%;
+  height: 80%;
+  background-color: var(--background);
+  border-radius: 50%;
+  margin: auto;
+  transform: translateX(30%) scale(1);
+  transition: var(--transition);
+}
+
+/* Sun rays */
+.darkmode-switch + label > .dot > .sun-rays {
+  --scale: 0.8;
+  --rotation: 0deg;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(var(--scale)) rotate(var(--rotation));
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.darkmode-switch + label > .dot > .sun-rays > * {
+  width: 100%;
+  position: absolute;
+  height: 7%;
+  --scale: 0;
+  transition: var(--transition);
+  opacity: 0.8;
+  display: flex;
+  justify-content: space-between;
+}
+
+.darkmode-switch + label > .dot > .sun-rays > *:nth-child(4n + 1) {
+  transform: scale(var(--scale)) rotate(45deg);
+}
+.darkmode-switch + label > .dot > .sun-rays > *:nth-child(4n + 2) {
+  transform: scale(var(--scale)) rotate(90deg);
+}
+.darkmode-switch + label > .dot > .sun-rays > *:nth-child(4n + 3) {
+  transform: scale(var(--scale)) rotate(135deg);
+}
+.darkmode-switch + label > .dot > .sun-rays > *:nth-child(4n + 4) {
+  transform: scale(var(--scale)) rotate(180deg);
+}
+
+.darkmode-switch + label > .dot > .sun-rays > *:after,
+.darkmode-switch + label > .dot > .sun-rays > *:before {
+  content: "";
+  width: 20%;
+  height: 100%;
+  background-color: var(--foreground);
+  border-radius: var(--height);
+}
+
+/* Hover effects */
+.darkmode-switch:hover + label {
+  --background: #395cab;
+  --foreground: #f1e8ac;
+}
+
+/* Checked state (light mode) */
+.darkmode-switch:checked + label {
+  --foreground: #ffda24;
+  --background: #71b1f2;
+}
+
+.darkmode-switch:checked + label > .dot {
+  transform: translateX(calc(var(--width) - var(--size) - (var(--padding) * 2)));
+}
+
+.darkmode-switch:checked + label > .dot > .circle {
+  transform: scale(0.5);
+}
+
+.darkmode-switch:checked + label > .dot > .moon-dot {
+  transform: translateX(100%) scale(0);
+}
+
+.darkmode-switch:checked + label > .dot > .sun-rays {
+  --scale: 1;
+  --rotation: -180deg;
+  transition: var(--transition-time-slow);
+}
+
+.darkmode-switch:checked + label > .dot > .sun-rays > * {
+  --scale: 1;
+}
+
+.darkmode-switch:checked + label > .stars {
+  opacity: 0;
+}
+
+.darkmode-switch:checked + label > .clouds {
+  opacity: 1;
+}

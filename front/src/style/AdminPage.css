@@ -1,0 +1,266 @@
+/* AdminPage.css — Улучшенные плавные анимации */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+
+.admin-page {
+  min-height: 100vh;
+  padding: 2rem 0;
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  color: #2c3e50;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.admin-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.admin-header h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  background: #9ad2d6;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUpHeader 0.8s ease-out forwards;
+}
+
+.admin-header p {
+  font-size: 1.2rem;
+  color: #7f8c8d;
+  max-width: 600px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInUpHeader 0.8s ease-out 0.3s forwards;
+}
+
+@keyframes fadeInUpHeader {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.admin-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 2rem;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.08);
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  color: #2c3e50;
+  overflow: hidden;
+  border: 1px solid rgba(220, 226, 232, 0.6);
+  backdrop-filter: blur(4px);
+  transform: translateY(0);
+  opacity: 0;
+  z-index: 1;
+}
+
+.admin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: #3498db;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 0 6px 6px 0;
+}
+
+.admin-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 10px 20px rgba(0, 0, 0, 0.08);
+  border-color: rgba(52, 152, 219, 0.4);
+  z-index: 10;
+}
+
+.admin-card:hover::before {
+  width: 12px;
+  background: #2980b9;
+}
+
+.admin-card .card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 1.2rem;
+  color: #3498db;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translateY(0);
+}
+
+.admin-card:hover .card-icon {
+  color: #2980b9;
+  transform: translateY(-3px) scale(1.12);
+}
+
+.admin-card h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 0.8rem 0;
+  transition: color 0.4s ease;
+}
+
+.admin-card p {
+  font-size: 0.98rem;
+  color: #7f8c8d;
+  margin: 0 0 1.2rem 0;
+  line-height: 1.6;
+  transition: color 0.4s ease;
+}
+
+.card-arrow {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  font-size: 1.3rem;
+  color: #bdc3c7;
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  opacity: 0.7;
+}
+
+.admin-card:hover .card-arrow {
+  color: #3498db;
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+/* Темизация иконок и полос */
+.admin-card.users .card-icon { color: #3498db; }
+.admin-card.users::before { background: #3498db; }
+.admin-card.users:hover::before { background: #2980b9; }
+
+.admin-card.categories .card-icon { color: #e67e22; }
+.admin-card.categories::before { background: #e67e22; }
+.admin-card.categories:hover::before { background: #d35400; }
+
+.admin-card.roles .card-icon { color: #9b59b6; }
+.admin-card.roles::before { background: #9b59b6; }
+.admin-card.roles:hover::before { background: #8e44ad; }
+
+.admin-card.feedback .card-icon { color: #1abc9c; }
+.admin-card.feedback::before { background: #1abc9c; }
+.admin-card.feedback:hover::before { background: #16a085; }
+
+.admin-card.logs .card-icon { color: #eeeb22; }
+.admin-card.logs::before { background: #eeeb22; }
+.admin-card.logs:hover::before { background: #cac71e; }
+
+/* Плавное появление карточек по очереди */
+@keyframes slideInFade {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-card {
+  animation: slideInFade 0.7s ease forwards;
+}
+
+.admin-card:nth-child(1) { animation-delay: 0.1s; }
+.admin-card:nth-child(2) { animation-delay: 0.2s; }
+.admin-card:nth-child(3) { animation-delay: 0.3s; }
+.admin-card:nth-child(4) { animation-delay: 0.4s; }
+.admin-card:nth-child(5) { animation-delay: 0.5s; }
+
+/* Дополнительный эффект: легкая волна при наведении */
+.admin-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  transform: scale(0);
+  border-radius: 50%;
+}
+
+.admin-card:hover::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .admin-header h1 {
+    font-size: 2.3rem;
+  }
+
+  .admin-header p {
+    font-size: 1.1rem;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+
+  .admin-card {
+    padding: 1.6rem;
+    border-radius: 16px;
+  }
+
+  .admin-card h3 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-page {
+    padding: 1rem 0;
+  }
+
+  .admin-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .admin-card {
+    transform: translateY(0);
+    animation: slideInFade 0.6s ease forwards;
+  }
+}
+
+[data-theme="dark"] .admin-page {
+  background-color: #061927;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .admin-card {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+[data-theme="dark"] .admin-card h3 {
+  color: #fff;
+}
+
+[data-theme="dark"] .admin-card p {
+  color: #aaa;
+}

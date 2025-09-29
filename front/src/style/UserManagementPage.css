@@ -1,0 +1,745 @@
+/* UserManagementPage.css — Полностью исправленный и улучшенный дизайн */
+
+:root {
+  --primary-color: #9ad2d6;
+  --primary-dark: #0e737b;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --gray-light: #f5f5f5;
+  --gray-medium: #cccccc;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.12);
+  --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.user-management-page {
+ padding: 0 20px;
+  color: var(--text-color);
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-management-page h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 1.8rem;
+  text-align: center;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: slideInTitle 0.7s ease-out 0.2s forwards;
+  opacity: 0;
+}
+
+@keyframes slideInTitle {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Переключатель страниц */
+.page-toggle {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 1.8rem;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  padding: 12px 24px;
+  border: 1px solid var(--primary-color);
+  background-color: white;
+  color: var(--primary-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-weight: 600;
+  font-size: 15px;
+  min-width: 160px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: rgba(154, 210, 214, 0.1);
+  transition: width 0.3s ease;
+  z-index: 0;
+}
+
+.toggle-btn:hover::before {
+  width: 100%;
+}
+
+.toggle-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.toggle-btn:hover:not(.active) {
+  color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Кнопка создания */
+.create-btn {
+  display: block;
+  margin: 0 auto 1.8rem;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  padding: 12px 28px;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  font-size: 15px;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.create-btn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Таблица */
+.users-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 1.5rem;
+  background: white;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  animation: slideUpTable 0.5s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes slideUpTable {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.users-table th,
+.users-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  transition: background-color 0.3s ease;
+}
+
+.users-table th {
+  background-color: var(--gray-light);
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.users-table tbody tr:hover {
+  background-color: rgba(154, 210, 214, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.users-table td {
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* Пагинация */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2rem;
+  padding: 12px 20px;
+  background-color: var(--gray-light);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--primary-dark);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 14px;
+  min-width: 90px;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pagination span {
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 14px;
+}
+
+/* === МОДАЛЬНОЕ ОКНО — ПО ЦЕНТРУ, ПОВЕРХ ВСЕХ === */
+
+/* Модальное окно — оверлей */
+.ump-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: ump-fadeIn 0.3s ease-out;
+}
+
+/* Содержимое модального окна */
+.ump-modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: ump-scaleIn 0.3s ease-out;
+}
+
+/* Заголовок модального окна */
+.ump-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.ump-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* Кнопка закрытия */
+.ump-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #999;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ump-modal-close-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Форма */
+.ump-modal-form {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Строка с двумя полями */
+.ump-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .ump-form-row {
+    flex-direction: column;
+  }
+}
+
+/* Группа полей */
+.ump-form-group label {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.ump-form-group input,
+.ump-form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.ump-form-group input:focus,
+.ump-form-group select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Роли доступа — сетка чекбоксов */
+.ump-access-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.ump-checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.ump-checkbox-label input {
+  opacity: 0;
+  position: absolute;
+}
+
+.ump-checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.ump-checkbox-label input:checked + .ump-checkbox-custom {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.ump-checkbox-label input:checked + .ump-checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 0.9rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ump-no-roles {
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Кнопки */
+.ump-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.ump-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ump-btn-primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.ump-btn-primary:hover {
+  background-color: #3a7bc8;
+}
+
+.ump-btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.ump-btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+/* Анимации */
+@keyframes ump-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ump-scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.btn-secondary{
+  margin-right: 20px;
+}
+
+/* Подсказка под полем пароля */
+.ump-password-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  display: block;
+  font-style: italic;
+}
+
+/* Сделаем поле серым, если отключено */
+.ump-modal-form input:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Опционально: стили для отключённых чекбоксов */
+.ump-checkbox-label input:disabled + .ump-checkbox-custom {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+.ump-checkbox-label input:disabled + .ump-checkbox-custom::after {
+  opacity: 0.5;
+}
+
+.source-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.source-badge.ldap {
+  background-color: #e6f7ff;
+  color: #0050b3;
+  border: 1px solid #91d5ff;
+}
+
+.source-badge.local {
+  background-color: #f6ffed;
+  color: #389e0d;
+  border: 1px solid #b7eb8f;
+}
+
+/* Контролы */
+.user-management-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px 0;
+  align-items: center;
+}
+
+.search-filter-group {
+  flex: 1;
+  min-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.source-filter-group {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.radio-label input {
+  margin-right: 6px;
+  accent-color: #007bff;
+}
+
+.ump-password-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* style/UserManagementPage.css */
+
+.search-filters {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+.filter-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+.filter-group input[type="text"],
+.filter-group input[type="email"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 5px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 5px;
+}
+
+.filter-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.users-table th,
+.users-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.users-table th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+}
+
+.source-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.source-badge.ldap {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.source-badge.local {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-restore {
+  background-color: #28a745;
+  color: white;
+}
+
+[data-theme="dark"] .user-management-page {
+  background-color: #061927;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .users-table {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .users-table th  {
+  background-color: #333;
+  color: #fff;
+}
+
+
+[data-theme="dark"] td  {
+  background-color: #333;
+  color: #fff;
+}
+
+[data-theme="dark"] label{
+
+  color: white;
+
+}
+
+[data-theme="dark"] #ump-modal-title{
+
+  color: white;
+
+}
+
+[data-theme="dark"] .ump-modal-content {
+  background-color: #061927;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .pagination{
+
+  background-color: #061927;
+}
+

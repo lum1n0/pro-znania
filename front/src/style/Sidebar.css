@@ -1,0 +1,364 @@
+/* src/style/Sidebar.css (updated) */
+.kb-sidebar {
+  width: 250px;
+  height: 100vh;
+  background: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transition: width 0.3s ease, left 0.3s ease;
+  z-index: 1000;
+  overflow-y: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.kb-sidebar-collapsed {
+  width: 80px;
+}
+
+.kb-sidebar-header {
+  padding: 29px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.kb-sidebar-brand {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #495057;
+  gap: 10px;
+}
+
+.kb-sidebar-brand svg {
+  min-width: 20px;
+}
+
+.kb-sidebar-toggle {
+  background: #e9ecef;
+  border: none;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.kb-sidebar-toggle:hover {
+  background: #ced4da;
+}
+
+.kb-toggle-icon {
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.kb-sidebar-collapsed .kb-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.kb-nav-list {
+  display: flex;
+  align-items: left;
+  justify-content: center;
+  gap: 20px;
+  flex-direction: column;
+  list-style: none;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.kb-nav-item-content {
+  color: black;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kb-nav-item {
+  margin-left: 20px;
+  padding: 0 !important;
+  display: flex;
+  gap: 5px;
+}
+
+.lucide-file-text{
+  flex-shrink: 0;
+}
+
+.kb-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.kb-nav-link:hover {
+  background: #e9ecef;
+}
+
+.kb-nav-icon {
+  min-width: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Поиск */
+.kb-search-item .kb-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #f1f3f5;
+  border-radius: 6px;
+}
+
+.kb-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #495057;
+  font-size: 14px;
+  flex: 1;
+}
+
+.kb-search-input::placeholder {
+  color: #868e96;
+}
+
+.kb-clear-search {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #868e96;
+  padding: 0;
+}
+
+.kb-clear-search:hover {
+  color: #495057;
+}
+
+/* Выпадающие меню */
+.kb-dropdown-toggle {
+  cursor: pointer;
+}
+
+.kb-dropdown-icon {
+  font-size: 14px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.kb-dropdown-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 4px;
+}
+
+.kb-active-dropdown .kb-dropdown-menu {
+  display: block;
+  padding-left: 50px;
+}
+
+.kb-dropdown-menu {
+  display: none; /* По умолчанию скрыто */
+}
+
+.kb-category-item{
+  display: flex;
+}
+
+.kb-search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-top: 4px;
+  display: block;
+}
+
+.kb-dropdown-item-wrapper {}
+
+/* Фиксированный размер иконок категорий */
+.kb-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+  /* Фиксированная высота для стабильности */
+  min-height: 32px;
+}
+
+.kb-dropdown-link:hover {
+  background: #e9ecef;
+}
+
+.kb-dropdown-link.kb-active {
+  color: #149aa3;
+  font-weight: 500;
+}
+
+.kb-dropdown-link.kb-deleted {
+  color: #868e96 !important;
+  text-decoration: line-through;
+  background: transparent;
+}
+
+.kb-dropdown-link.kb-error {
+  color: #dc3545;
+}
+
+/* Фиксированный размер иконок категорий */
+.category-icon1 {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  margin: 0 !important;
+  vertical-align: middle;
+  object-fit: contain !important;
+  flex-shrink: 0; /* Не сжимать иконку */
+}
+
+/* Подменю */
+.kb-sub-menu {
+  list-style: none;
+  margin-top: 4px;
+  max-height: 200px;
+}
+
+.kb-category-header {
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  /* Фиксированная высота для стабильности */
+  min-height: 28px;
+}
+
+/* Удалённые элементы */
+.kb-deleted {
+  color: #868e96 !important;
+  background: transparent !important;
+  text-decoration: line-through;
+}
+
+/* Сворачивание */
+.kb-sidebar-collapsed .kb-sidebar-brand span,
+.kb-sidebar-collapsed .kb-nav-link span,
+.kb-sidebar-collapsed .kb-dropdown-icon,
+.kb-sidebar-collapsed .kb-search-input,
+.kb-sidebar-collapsed .kb-clear-search,
+.kb-sidebar-collapsed .kb-dropdown-menu,
+.kb-sidebar-collapsed .kb-search-results {
+  display: none;
+}
+
+.kb-sidebar-collapsed .kb-nav-item {
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.kb-sidebar-collapsed .kb-nav-link {
+  justify-content: center;
+  padding: 10px;
+  margin: 0;
+}
+
+/* Скроллбар */
+.kb-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.kb-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.kb-sidebar::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+
+.kb-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+.kb-dropdown-link.kb-active {
+  color: #149aa3;
+  font-weight: 500;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .kb-sidebar {
+    position: fixed;
+    left: -250px;
+    width: 250px !important;
+  }
+
+  .kb-sidebar.open {
+    left: 0;
+  }
+
+  .kb-sidebar-collapsed {
+    width: 250px !important; /* Disable collapse on mobile */
+  }
+
+  .kb-sidebar-toggle {
+    display: none; /* Hide collapse button on mobile */
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .kb-nav-link,
+  .kb-dropdown-link {
+    font-size: 14px;
+  }
+}
+
+[data-theme="dark"] .kb-sidebar {
+  background-color: #020B1F;
+  border-right-color: #444;
+}
+
+[data-theme="dark"] .kb-nav-link{
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .kb-nav-link:hover{
+  background-color: #333;
+}

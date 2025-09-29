@@ -1,0 +1,1338 @@
+/* CategoryManagementPage.css — Современный UI/UX с анимациями */
+
+:root {
+  --primary-color: #9ad2d6;
+  --primary-dark: #0e737b;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #e0e0e0;
+  --gray-light: #f5f5f5;
+  --gray-medium: #cccccc;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.12);
+  --transition-fast: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+[data-theme="dark"] .svg {
+  color: black;
+}
+
+.category-management-page {
+  padding: 2rem 0;
+  color: var(--text-color);
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  background-color: #f8f9fc;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Заголовок страницы */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 4px;
+}
+
+.page-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* Кнопка добавления категории */
+.add-category-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+  min-width: 180px;
+}
+
+.add-category-btn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.add-category-btn:active {
+  transform: translateY(0);
+}
+
+/* Поисковая строка */
+.search-container {
+  margin-bottom: 2rem;
+  padding: 0 4px;
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-normal);
+}
+
+.search-wrapper:focus-within {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(154, 210, 214, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: #999;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 40px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  outline: none;
+  color: var(--text-color);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.clear-search-btn:hover {
+  color: #333;
+  background-color: #f0f0f0;
+}
+
+/* Список категорий */
+.categories-list {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.category-item {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s ease;
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-item.deleted {
+  background-color: var(--gray-light);
+  opacity: 0.7;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #f9f9f9;
+  transition: background-color var(--transition-fast);
+}
+
+.category-header:hover {
+  background-color: #f5f7fa;
+}
+
+.category-info {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 30px;
+  cursor: pointer;
+  flex: 1;
+  height: 50px;
+  margin-bottom: 20px;
+}
+
+.category-info:hover {
+  background-color: rgba(154, 210, 214, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+/* Иконка категории */
+.category-icon img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 8px;
+  transition: transform var(--transition-fast);
+}
+
+.category-icon img:hover {
+  transform: scale(1.05);
+}
+
+.category-icon .no-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #e0e0e0;
+  color: #999;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}
+
+.category-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  padding-top: 13px;
+}
+
+.category-info .category-description {
+  font-size: 14px;
+  color: #666;
+  margin-left: 4px;
+}
+
+/* Действия с категорией */
+.category-actions {
+  display: flex;
+  gap: 10px;
+  padding-left: 10px;
+}
+
+.delete-btn,
+.edit-btn,
+.restore-btn,
+.soft-delete-btn,
+.add-child-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  background-color: white;
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: all var(--transition-normal);
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delete-btn:hover,
+.edit-btn:hover,
+.soft-delete-btn:hover,
+.add-child-btn:hover {
+  background-color: #f5f5f5;
+  transform: translateY(-1px);
+}
+
+.restore-btn {
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.restore-btn:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+}
+
+/* Расширенная информация (статьи, роли) */
+.category-details {
+  padding: 16px 20px;
+  background-color: #fdfdfd;
+  border-top: 1px solid var(--border-color);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.access-roles,
+.articles {
+  margin-bottom: 16px;
+}
+
+.access-roles h4,
+.articles h4 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.access-roles ul,
+.articles ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.access-roles li,
+.articles li {
+  background-color: var(--gray-light);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-color);
+  margin-bottom: 4px;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.articles li {
+  background-color: white;
+  border: 1px solid var(--border-color);
+}
+
+/* Стиль для удалённых статей */
+.articles li.deleted-article a {
+  text-decoration: line-through;
+  color: #999;
+  background-color: #f8f8f8;
+}
+
+.no-articles,
+.no-categories {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+  font-style: italic;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 15px;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #f5c6cb;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* === МОДАЛЬНОЕ ОКНО — ПО ЦЕНТРУ, ПОВЕРХ ВСЕХ === */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  animation: fadeInOverlay 0.3s ease-out forwards;
+  pointer-events: auto;
+}
+
+@keyframes fadeInOverlay {
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 2001;
+  transform: scale(0.95);
+  opacity: 0;
+  animation: zoomInModal 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes zoomInModal {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(135deg, #f8f9fc 0%, #f0f4f8 100%);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #aaa;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-normal);
+}
+
+.modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #333;
+  transform: rotate(90deg);
+}
+
+/* Форма внутри модалки */
+.modal form {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--primary-dark);
+  font-size: 14px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  background-color: white;
+  transition: all var(--transition-fast);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow:
+    0 0 0 2px rgba(154, 210, 214, 0.2),
+    0 2px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Чекбоксы ролей */
+.roles-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background-color: #fbfdfe;
+  font-size: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) #f0f4f8;
+}
+
+.roles-checkboxes::-webkit-scrollbar {
+  width: 6px;
+}
+
+.roles-checkboxes::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 3px;
+}
+
+.roles-checkboxes::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 3px;
+}
+
+.role-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.role-checkbox:hover {
+  background-color: rgba(154, 210, 214, 0.08);
+  transform: translateX(2px);
+}
+
+.role-checkbox input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary-color);
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.role-checkbox input[type="checkbox"]::after {
+  content: '✓';
+  font-size: 12px;
+  color: white;
+  opacity: 0;
+  font-weight: bold;
+}
+
+.role-checkbox input[type="checkbox"]:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-dark);
+}
+
+.role-checkbox input[type="checkbox"]:checked::after {
+  opacity: 1;
+}
+
+.role-checkbox label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 400;
+  color: var(--text-color);
+  font-size: 14px;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.role-checkbox label:hover {
+  color: var(--primary-dark);
+}
+
+/* Кнопки формы */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: #f9fbfd;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* Общие кнопки */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 90px;
+  text-align: center;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .add-category-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .category-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .category-icon img,
+  .category-icon .no-icon {
+    width: 48px;
+    height: 48px;
+    margin-left: 20px;
+  }
+
+  .category-actions {
+    flex-wrap: wrap;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 10px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .roles-checkboxes {
+    max-height: 140px;
+  }
+}
+
+/* === Кнопки в модальных окнах === */
+
+.submit-btn,
+.cancel-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 120px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Кнопка "Сохранить" */
+.submit-btn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Кнопка "Отмена" */
+.cancel-btn {
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.cancel-btn:hover {
+  background-color: #dee2e6;
+  color: #212529;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.cancel-btn:active {
+  transform: translateY(0);
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .submit-btn,
+  .cancel-btn {
+    width: 100%;
+    margin: 6px 0;
+  }
+}
+
+/* === КНОПКА ПЕРЕКЛЮЧЕНИЯ КАТЕГОРИИ === */
+.toggle-btn {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--gray-light);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+  color: var(--primary-dark);
+  background: white;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Анимация при наведении */
+.toggle-btn:hover {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.toggle-btn:hover svg {
+  color: white;
+  transform: scale(1.1);
+}
+
+/* SVG-иконка внутри */
+.toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-dark);
+  transition: all var(--transition-normal);
+}
+
+/* Плавное вращение при раскрытии */
+.toggle-btn svg.rotate-down {
+  transform: rotate(90deg);
+}
+
+/* Активное состояние (если нужно выделить открытую категорию) */
+.toggle-btn.active,
+.toggle-btn.expanded {
+  background-color: var(--primary-color);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.toggle-btn.active svg,
+.toggle-btn.expanded svg {
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Состояние при нажатии */
+.toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .toggle-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .toggle-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* === Модальные окна — единый дизайн === */
+.cmp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: cmp-fadeIn 0.3s ease-out;
+}
+
+.cmp-modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: cmp-scaleIn 0.3s ease-out;
+}
+
+.cmp-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.cmp-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.cmp-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #999;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.cmp-modal-close-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cmp-modal-form {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cmp-modal-form_role {
+  width: 530px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cmp-form-group label {
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.cmp-form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.cmp-form-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.cmp-access-roles-grid {
+  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cmp-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  padding: 6px 0;
+  line-height: 1.4;
+}
+
+.cmp-checkbox-label input {
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+}
+
+.cmp-checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  flex: none;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.cmp-checkbox-label input:checked+.cmp-checkbox-custom {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.cmp-checkbox-label input:checked+.cmp-checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 0.9rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.cmp-no-roles {
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
+}
+
+.cmp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.cmp-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cmp-btn-primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.cmp-btn-primary:hover {
+  background-color: #3a7bc8;
+}
+
+.cmp-btn-secondary {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cmp-btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+@keyframes cmp-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cmp-scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.articles ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.articles li {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--text-color);
+  max-width: 200px;
+  width: fit-content;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.article-link {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 500;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: color 0.2s ease;
+}
+
+.article-link:hover {
+  color: #0056b3;
+}
+
+.articles li {
+  cursor: pointer;
+}
+
+[data-theme="dark"] .category-management-page {
+  background-color: #061927;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .categories-list {
+  background-color: #2d2d2d;
+}
+
+[data-theme="dark"] .category-header {
+  background-color: #333;
+}
+
+[data-theme="dark"] .category-info h3 {
+  color: #fff;
+}
+
+[data-theme="dark"] .category-details {
+  background-color: #020B1F;
+}
+
+[data-theme="dark"] .subcategory-link {
+  color: black;
+}
+
+[data-theme="dark"] .article-link {
+  color: #000;
+}
+
+[data-theme="dark"] .role-title {
+  color: black;
+}
+
+[data-theme="dark"] .toggle-btn {
+  background-color: #061927;
+}
+
+[data-theme="dark"] .add-child-btn {
+  color: black;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.pagination-controls .pagination-info {
+  font-size: 14px;
+  color: #555;
+}
+
+.pagination-controls .pagination-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.pagination-controls .pagination-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination-controls .pagination-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.pagination-size {
+  font-size: 14px;
+}
+
+.pagination-size select {
+  margin-left: 8px;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* === Добавленные/Обновленные стили === */
+
+/* Стили для отображения информации о родителе и текста категории */
+.category-text-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.category-text-info h3 {
+  margin: 0 0 4px 0; /* Уменьшен нижний отступ */
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+/* Стили для отображения родительской категории */
+.category-parent-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem; /* Уменьшен шрифт */
+  color: #666; /* Серый цвет для текста */
+}
+
+.parent-label {
+  font-weight: 500;
+  color: var(--primary-dark); /* Цвет метки как у заголовка */
+}
+
+.parent-name {
+  font-weight: normal;
+  color: #444; /* Цвет имени родителя */
+}
+
+/* Стилизация тега "Удалено" */
+.category-deleted-tag {
+  color: #dc3545; /* Красный цвет для удаленных */
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* Стилизация кнопки "Подкатегория" */
+.add-child-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Уменьшен отступ между иконкой и текстом */
+  padding: 8px 14px; /* Уменьшен паддинг */
+  background-color: #e9ecef; /* Светло-серый фон */
+  color: var(--text-color); /* Цвет текста как у других кнопок */
+  border: 1px solid var(--border-color); /* Граница как у других кнопок */
+  border-radius: var(--radius-sm); /* Радиус как у других кнопок */
+  cursor: pointer;
+  font-size: 14px; /* Размер шрифта как у других кнопок */
+  font-weight: 500; /* Вес шрифта как у других кнопок */
+  transition: all var(--transition-normal); /* Плавные переходы */
+  min-width: auto; /* Убираем фиксированную ширину */
+}
+
+.add-child-btn:hover {
+  background-color: #d1e7dd; /* Светло-зеленый при наведении */
+  border-color: #a3cfbb; /* Цвет границы при наведении */
+  transform: translateY(-1px); /* Небольшой подъем при наведении */
+  box-shadow: var(--shadow-sm); /* Тень при наведении */
+}
+
+.add-child-btn:active {
+  transform: translateY(0); /* Возвращаем на место при нажатии */
+  box-shadow: none; /* Убираем тень при нажатии */
+}
+
+.add-child-btn:disabled {
+  background-color: #f8f9fa; /* Цвет фона для отключенной кнопки */
+  color: #6c757d; /* Цвет текста для отключенной кнопки */
+  border-color: #dee2e6; /* Цвет границы для отключенной кнопки */
+  cursor: not-allowed; /* Курсор "запрещено" */
+  transform: none; /* Без трансформаций */
+  box-shadow: none; /* Без тени */
+}
+
+/* Стили для select в модальном окне редактирования */
+.cmp-form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: none; /* Убираем стандартную стрелку */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+.cmp-form-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Адаптивность для новых элементов */
+@media (max-width: 768px) {
+  .category-text-info {
+    margin-left: 0; /* Убираем левый отступ на мобильных */
+  }
+
+  .category-parent-info {
+    font-size: 0.8rem; /* Еще меньше шрифт на мобильных */
+  }
+
+  .add-child-btn {
+    padding: 6px 10px; /* Еще меньше паддинг на мобильных */
+    font-size: 13px; /* Меньше шрифт на мобильных */
+  }
+}
+
+/* Добавьте эти стили в src/style/CategoryManagementPage.css */
+
+.subcategories {
+  margin-bottom: 16px;
+}
+
+.subcategories h4 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.subcategories-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.subcategory-item {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 14px;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 4px; /* Отступ между названием и тегом "удалено" */
+}
+
+.subcategory-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.subcategory-item.subcategory-deleted {
+  opacity: 0.7;
+  background-color: var(--gray-light);
+}
+
+.subcategory-name {
+  font-weight: 500;
+}
+
+.subcategory-deleted-tag {
+  color: #dc3545; /* Красный цвет для тега удаленных */
+  font-size: 0.85rem;
+  font-weight: 500;
+}
