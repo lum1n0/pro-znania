@@ -73,7 +73,7 @@ class ArticleService(
         val category = categoryRepository.findById(categoryId)
             .orElseThrow { IllegalArgumentException("Категория не найдена") }
         when (currentUser.role.title) {
-            "ADMIN" -> return
+            "ADMIN", "MODERATOR" -> return
             "WRITER" -> {
                 val allowed = writerPermissionService.checkWriterCanEditCategory(currentUser.id, category)
                 if (!allowed) throw AccessDeniedException("Forbidden")
@@ -85,7 +85,7 @@ class ArticleService(
     // Перегрузка для случая, когда уже есть категория
     private fun assertCanEditCategory(currentUser: User, category: com.knowledge.base.model.Category) {
         when (currentUser.role.title) {
-            "ADMIN" -> return
+            "ADMIN", "MODERATOR" -> return
             "WRITER" -> {
                 val allowed = writerPermissionService.checkWriterCanEditCategory(currentUser.id, category)
                 if (!allowed) throw AccessDeniedException("Forbidden")
@@ -190,7 +190,7 @@ class ArticleService(
             ?: throw AccessDeniedException("Forbidden")
 
         when (user.role.title) {
-            "ADMIN" -> {
+            "ADMIN", "MODERATOR" -> {
                 val articles = articleRepository.findAllByCategory(category)
                 return articles.map { articleMapper.toDto(it) }
             }

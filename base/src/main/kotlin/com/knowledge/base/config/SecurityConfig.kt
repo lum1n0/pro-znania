@@ -81,20 +81,28 @@ class SecurityConfig(
 
                     // Новые правила для версий статей:
                     .requestMatchers(HttpMethod.GET, "/api/articles/*/versions/*/author").permitAll()
-
                     // Просмотр списка версий и конкретной версии
                     .requestMatchers(HttpMethod.GET, "/api/articles/*/versions/**").authenticated()
                     // Сравнение двух версий одной статьи
                     .requestMatchers(HttpMethod.GET, "/api/articles/*/compare").authenticated()
                     // Восстановление версии
-                    .requestMatchers(HttpMethod.POST, "/api/articles/*/versions/*/restore").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers(HttpMethod.POST, "/api/articles/*/versions/*/restore").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
                     // Удаление версии
-                    .requestMatchers(HttpMethod.DELETE, "/api/articles/*/versions/*").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/articles/*/versions/*").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
 
+                    // Модерация
+                    .requestMatchers(HttpMethod.POST, "/api/moderation/submit/create").hasRole("WRITER")
+                    .requestMatchers(HttpMethod.POST, "/api/moderation/submit/update/*").hasRole("WRITER")
+                    .requestMatchers(HttpMethod.GET, "/api/moderation/pending").hasAnyRole("ADMIN", "MODERATOR")
+                    .requestMatchers(HttpMethod.GET, "/api/moderation/proposals/*").hasAnyRole("ADMIN", "MODERATOR")
+                    .requestMatchers(HttpMethod.POST, "/api/moderation/proposals/*/approve").hasAnyRole("ADMIN", "MODERATOR")
+                    .requestMatchers(HttpMethod.POST, "/api/moderation/proposals/*/reject").hasAnyRole("ADMIN", "MODERATOR")
 
+                    // Мои работы
+                    .requestMatchers(HttpMethod.GET, "/api/my/work").authenticated()
 
                     // Перемещение категории (смена родителя) - только для ADMIN и WRITER
-                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}/move").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}/move").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
                     // Получение дочерних категорий - для всех аутентифицированных
                     .requestMatchers(HttpMethod.GET, "/api/category/{id}/children").authenticated()
                     // Получение статей категории - для всех аутентифицированных
@@ -104,10 +112,9 @@ class SecurityConfig(
                     // Получение полного дерева категорий - для всех аутентифицированных
                     .requestMatchers(HttpMethod.GET, "/api/category/tree").authenticated()
 
-
                     .requestMatchers("/api/writer-permissions/me/**").authenticated()
                     .requestMatchers("/api/writer-permissions/me/categories-editable/**").authenticated()
-                    .requestMatchers("/api/writer-permissions/me/can-edit/**").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers("/api/writer-permissions/me/can-edit/**").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
                     .requestMatchers("/api/writer-permissions/**").hasRole("ADMIN")
 
                     .requestMatchers("/error/**").permitAll()
@@ -131,8 +138,8 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/api/files/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/files/**").authenticated()
                     .requestMatchers("/api/access-role/full/**").authenticated()
-                    .requestMatchers("/api/articles/admin/by-category").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers("/api/user/get-id/**").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers("/api/articles/admin/by-category").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers("/api/user/get-id/**").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
                     .requestMatchers(
                         "/api/user/all",
                         "/api/user/all/is-delete-false",
@@ -149,22 +156,25 @@ class SecurityConfig(
                     .requestMatchers(HttpMethod.DELETE, "/api/access-role/delete/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/articles/delete/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/category/delete/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.POST, "/api/category").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.GET, "/api/articles/all").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.PATCH, "/api/articles/{id}/soft-delete").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers(HttpMethod.POST, "/api/category").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.GET, "/api/articles/all").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.PATCH, "/api/articles/{id}/soft-delete").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
 
-                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}/soft-delete").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers("/api/category/search-admin/").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.GET, "/api/category/all").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.GET, "/api/access-role/all").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.GET, "/api/access-role").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.POST, "/api/access-role").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers("/api/access-role/**").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.POST, "/api/articles/upload-image").hasAnyRole("ADMIN", "WRITER")
+                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.PUT, "/api/category/{id}/soft-delete").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers("/api/category/search-admin/").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.GET, "/api/category/all").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.GET, "/api/access-role/all").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.GET, "/api/access-role").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.POST, "/api/access-role").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers("/api/access-role/**").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
+                    .requestMatchers(HttpMethod.POST, "/api/articles/upload-image").hasAnyRole("ADMIN", "WRITER", "MODERATOR")
                     .requestMatchers(HttpMethod.GET, "/api/articles/{id}").authenticated()
-                    .requestMatchers(HttpMethod.POST, "/api/articles").hasAnyRole("ADMIN", "WRITER")
-                    .requestMatchers(HttpMethod.PUT, "/api/articles/{id}").hasAnyRole("ADMIN", "WRITER")
+
+                    // ВАЖНО: публикацию и обновление статей теперь могут делать только ADMIN и MODERATOR
+                    .requestMatchers(HttpMethod.POST, "/api/articles").hasAnyRole("ADMIN", "MODERATOR")
+                    .requestMatchers(HttpMethod.PUT, "/api/articles/{id}").hasAnyRole("ADMIN", "MODERATOR")
+
                     .requestMatchers("/api/feedback").authenticated()
                     .requestMatchers("/api/category/{userId}/for-user-all").authenticated()
                     .requestMatchers("/api/category/{description}/search-by/{userId}").authenticated()
@@ -180,7 +190,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost:4200","http://localhost:8080","http://pro-znania:4200", "http://10.15.22.141:3000", "http://10.221.107.83:4200", "http://172.20.10.3:4200")
+        configuration.allowedOrigins = listOf("http://localhost:4200","http://localhost:8080","http://pro-znania:4200", "http://10.15.22.141:3000", "http://10.221.107.83:4200", "http://172.20.10.3:4200", "http://pro-znania.llc.tagras.corp:4200/")
         configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
         configuration.allowedHeaders = listOf("Authorization", "Content-Type", "X-Requested-With", "X-Auth-Token")
         configuration.allowCredentials = true

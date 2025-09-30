@@ -12,7 +12,7 @@ await connectDB();
 // CORS: только с фронтенда
 app.use(
   cors({
-    origin: 'http://localhost:4200',
+    origin: ['http://localhost:4200', 'http://pro-znania.llc.tagras.corp:4200'],
     credentials: false,
   })
 );

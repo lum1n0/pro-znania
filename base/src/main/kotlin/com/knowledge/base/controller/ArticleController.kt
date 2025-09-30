@@ -143,8 +143,10 @@ class ArticleController(
         if (article == null) {
             return ResponseEntity.notFound().build()
         }
-        val isAdminOrWriter = authentication.authorities.any { it.authority == "ROLE_ADMIN" || it.authority == "ROLE_WRITER" }
-        if (article.isDelete && !isAdminOrWriter) {
+        val isPrivileged = authentication.authorities.any {
+            it.authority == "ROLE_ADMIN" || it.authority == "ROLE_WRITER" || it.authority == "ROLE_MODERATOR"
+        }
+        if (article.isDelete && !isPrivileged) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         return ResponseEntity.ok(article)
@@ -155,10 +157,10 @@ class ArticleController(
         return try {
             val articleDto = articleService.getArticleById(id)
                 ?: return ResponseEntity.notFound().build()
-            val isAdminOrWriter = authentication?.authorities?.any {
-                it.authority == "ROLE_ADMIN" || it.authority == "ROLE_WRITER"
+            val isPrivileged = authentication?.authorities?.any {
+                it.authority == "ROLE_ADMIN" || it.authority == "ROLE_WRITER" || it.authority == "ROLE_MODERATOR"
             } ?: false
-            if (articleDto.isDelete && !isAdminOrWriter) {
+            if (articleDto.isDelete && !isPrivileged) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
             }
             val articleEntity = articleService.getArticleEntityById(id)
@@ -184,5 +186,4 @@ class ArticleController(
     fun deleteArticle(authentication: Authentication, @PathVariable id: Long) {
         articleService.deleteArticleById(authentication.name, id)
     }
-
 }
