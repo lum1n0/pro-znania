@@ -6,6 +6,15 @@ import { chatAPI } from '../api/apiServese';
 import Cookies from 'js-cookie';
 import { v4 as uuidv4 } from 'uuid';
 
+// Определяем базовый URL для WebSocket
+const getWebSocketBaseUrl = () => {
+  // В production используем относительный путь, в development - абсолютный
+  if (process.env.NODE_ENV === 'production') {
+    return ''; // Относительный путь в production
+  }
+  return 'http://localhost:8080'; // Абсолютный путь в development
+};
+
 export const useChatStore = create(
   persist(
     (set, get) => ({
@@ -17,7 +26,7 @@ export const useChatStore = create(
       processedMessageIds: new Set(),
       isChatOpen: false,
       greetingSent: false,
-      isBotThinking: false, // ✅ Новое состояние для отслеживания "думания"
+      isBotThinking: false,
 
       initializeChat: (userId) => {
         return new Promise((resolve, reject) => {
@@ -34,7 +43,10 @@ export const useChatStore = create(
           set({ sessionId: currentSessionId, userId: userId });
 
           if (!get().stompClient || !get().stompClient.connected) {
-            const springSocket = new SockJS('http://localhost:8080/chat');
+            const wsBaseUrl = getWebSocketBaseUrl();
+            console.log('WebSocket base URL:', wsBaseUrl); // Для отладки
+            
+            const springSocket = new SockJS(`${wsBaseUrl}/chat`);
             const newStompClient = Stomp.over(springSocket);
             newStompClient.debug = null;
             
@@ -60,7 +72,7 @@ export const useChatStore = create(
                       { text: msg.message, isFromBot: msg.isFromBot, timestamp: new Date(), id: msg.id }
                     ],
                     processedMessageIds: new Set([...state.processedMessageIds, msg.id]),
-                    isBotThinking: false // ✅ Скрываем "думает" при получении ответа
+                    isBotThinking: false
                   }));
                 });
 
@@ -73,7 +85,7 @@ export const useChatStore = create(
               },
               (error) => {
                 console.error('Ошибка подключения к Spring WebSocket:', error);
-                set({ isConnected: false, isBotThinking: false }); // ✅ Скрываем "думает" при ошибке
+                set({ isConnected: false, isBotThinking: false });
                 reject(error);
               }
             );
@@ -87,11 +99,10 @@ export const useChatStore = create(
         const { sessionId, stompClient, userId } = get();
         if (!stompClient || !stompClient.connected || !sessionId || !userId) {
           console.error('Невозможно отправить сообщение: чат не готов.');
-          set({ isBotThinking: false }); // ✅ На всякий случай скрываем "думает"
+          set({ isBotThinking: false });
           return;
         }
 
-        // ✅ Показываем "Розалинда думает" перед отправкой
         set({ isBotThinking: true });
 
         const messagePayload = {
@@ -116,7 +127,11 @@ export const useChatStore = create(
       clearChat: async () => {
         const { sessionId, stompClient } = get();
         if (sessionId) {
-          try { await chatAPI.deleteSessionMessages(sessionId); } catch (err) { console.error('Не удалось удалить сообщения сессии', err); }
+          try { 
+            await chatAPI.deleteSessionMessages(sessionId); 
+          } catch (err) { 
+            console.error('Не удалось удалить сообщения сессии', err); 
+          }
         }
         
         if (stompClient && stompClient.connected) {
@@ -124,10 +139,15 @@ export const useChatStore = create(
         }
         
         set({
-          messages: [], isConnected: false, sessionId: null, userId: null, stompClient: null,
-          processedMessageIds: new Set(), isChatOpen: false,
+          messages: [], 
+          isConnected: false, 
+          sessionId: null, 
+          userId: null, 
+          stompClient: null,
+          processedMessageIds: new Set(), 
+          isChatOpen: false,
           greetingSent: false,
-          isBotThinking: false // ✅ Сбрасываем состояние "думания"
+          isBotThinking: false
         });
         localStorage.removeItem('chat-storage');
       },
@@ -135,7 +155,9 @@ export const useChatStore = create(
     {
       name: 'chat-storage',
       partialize: (state) => ({
-        messages: state.messages, sessionId: state.sessionId, userId: state.userId,
+        messages: state.messages, 
+        sessionId: state.sessionId, 
+        userId: state.userId,
         greetingSent: state.greetingSent
       }),
     }

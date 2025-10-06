@@ -10,6 +10,7 @@ import Cookies from 'js-cookie';
 import { showSuccess, showError } from '../utils/toastUtils';
 import ConfirmationModal from '../component/ConfirmationModal';
 import '../style/ArticlePage.css';
+import { articleVersionsAPI } from '../api/apiServese';
 import { sanitizeHtml } from '../utils/sanitizeHtml';
 
 const deltaToHtml = (delta) => {
@@ -55,11 +56,14 @@ const ArticlePage = () => {
   const [feedback, setFeedback] = useState({ title: '', description: '' });
   const [videoUrl, setVideoUrl] = useState(null);
   const [error, setError] = useState(null);
+  // + новое состояние для автора выбранной версии
+  const [versionAuthor, setVersionAuthor] = useState(null);
+
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [canEditArticle, setCanEditArticle] = useState(false);
@@ -73,6 +77,27 @@ const ArticlePage = () => {
   const versionButtonRef = useRef(null);
   // Ref для позиции дропдауна
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 250 });
+
+  useEffect(() => {
+    const loadVersionAuthor = async () => {
+      if (isViewingVersion && selectedVersion && selectedArticle?.id) {
+        try {
+          const { data } = await articleVersionsAPI.getArticleVersionAuthor(
+            selectedArticle.id,
+            selectedVersion.version
+          );
+          setVersionAuthor(data || null);
+        } catch (e) {
+          console.error('Не удалось получить автора версии:', e);
+          setVersionAuthor(null);
+        }
+      } else {
+        setVersionAuthor(null);
+      }
+    };
+    loadVersionAuthor();
+  }, [isViewingVersion, selectedVersion, selectedArticle]);
+
 
   // Проверка прав доступа для WRITER
   useEffect(() => {
@@ -177,100 +202,100 @@ const ArticlePage = () => {
   }, [selectedArticle, id, userEmail]);
 
   // Отправка отзыва
-// Отправка отзыва
-const handleFeedbackSubmit = async (e) => {
-  e.preventDefault();
+  // Отправка отзыва
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!user) {
-    showError('Пожалуйста, войдите в систему');
-    logAction('WARN', 'FEEDBACK_NO_USER', 'Попытка отправить отзыв без авторизации', {
-      articleId: id,
-      userEmail,
-    });
-    return;
-  }
-
-  if (!selectedArticle?.title) {
-    showError('Заголовок статьи не найден');
-    return;
-  }
-
-  if (!feedback.title.trim() || !feedback.description.trim()) {
-    showError('Заполните все поля');
-    return;
-  }
-
-  const token = Cookies.get('authToken');
-  if (!token) {
-    showError('Токен отсутствует');
-    logAction('ERROR', 'FEEDBACK_NO_TOKEN', 'Токен отсутствует при отправке отзыва', {
-      articleId: id,
-      articleTitle: selectedArticle.title,
-      userEmail,
-    });
-    return;
-  }
-
-  try {
-    const feedbackData = {
-      title: feedback.title.trim(),
-      description: feedback.description.trim(),
-      articleId: Number(id) || selectedArticle.id,
-      articleTitle: selectedArticle.title,
-      pageUrl: window.location.pathname,
-      userEmail,
-    };
-
-    // Готовим заголовки: JSON + Bearer при наличии токена
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    if (!user) {
+      showError('Пожалуйста, войдите в систему');
+      logAction('WARN', 'FEEDBACK_NO_USER', 'Попытка отправить отзыв без авторизации', {
+        articleId: id,
+        userEmail,
+      });
+      return;
     }
 
-    // Прямая отправка через ApiClient, чтобы гарантировать передачу заголовков
-    await ApiClient.post('/api/feedback', feedbackData, { headers });
+    if (!selectedArticle?.title) {
+      showError('Заголовок статьи не найден');
+      return;
+    }
 
-    logAction('INFO', 'FEEDBACK_SENT', 'Отзыв по статье отправлен', {
-      articleId: id,
-      articleTitle: selectedArticle.title,
-      userEmail,
-    });
+    if (!feedback.title.trim() || !feedback.description.trim()) {
+      showError('Заполните все поля');
+      return;
+    }
 
-    showSuccess('Спасибо! Отзыв отправлен');
-    setIsFeedbackOpen(false);
-    setFeedback({ title: '', description: '' });
-  } catch (err) {
-    // Нормализация текста ошибки
-    let errorMsg = 'Unknown error';
-    if (err.response) {
-      const { status, data } = err.response;
-      if (typeof data === 'string' && data.trim()) {
-        errorMsg = data.trim();
-      } else if (data?.message) {
-        errorMsg = data.message;
-      } else if (status) {
-        errorMsg = `HTTP ${status}`;
+    const token = Cookies.get('authToken');
+    if (!token) {
+      showError('Токен отсутствует');
+      logAction('ERROR', 'FEEDBACK_NO_TOKEN', 'Токен отсутствует при отправке отзыва', {
+        articleId: id,
+        articleTitle: selectedArticle.title,
+        userEmail,
+      });
+      return;
+    }
+
+    try {
+      const feedbackData = {
+        title: feedback.title.trim(),
+        description: feedback.description.trim(),
+        articleId: Number(id) || selectedArticle.id,
+        articleTitle: selectedArticle.title,
+        pageUrl: window.location.pathname,
+        userEmail,
+      };
+
+      // Готовим заголовки: JSON + Bearer при наличии токена
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
-    } else if (err.message) {
-      errorMsg = err.message;
-    }
 
-    logAction('ERROR', 'FEEDBACK_SEND_FAIL', 'Ошибка отправки отзыва', {
-      articleId: id,
-      articleTitle: selectedArticle.title,
-      error: errorMsg,
-      userEmail,
-    });
-    showError('Не удалось отправить отзыв: ' + errorMsg);
-  }
-};
+      // Прямая отправка через ApiClient, чтобы гарантировать передачу заголовков
+      await ApiClient.post('/api/feedback', feedbackData, { headers });
+
+      logAction('INFO', 'FEEDBACK_SENT', 'Отзыв по статье отправлен', {
+        articleId: id,
+        articleTitle: selectedArticle.title,
+        userEmail,
+      });
+
+      showSuccess('Спасибо! Отзыв отправлен');
+      setIsFeedbackOpen(false);
+      setFeedback({ title: '', description: '' });
+    } catch (err) {
+      // Нормализация текста ошибки
+      let errorMsg = 'Unknown error';
+      if (err.response) {
+        const { status, data } = err.response;
+        if (typeof data === 'string' && data.trim()) {
+          errorMsg = data.trim();
+        } else if (data?.message) {
+          errorMsg = data.message;
+        } else if (status) {
+          errorMsg = `HTTP ${status}`;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
+      logAction('ERROR', 'FEEDBACK_SEND_FAIL', 'Ошибка отправки отзыва', {
+        articleId: id,
+        articleTitle: selectedArticle.title,
+        error: errorMsg,
+        userEmail,
+      });
+      showError('Не удалось отправить отзыв: ' + errorMsg);
+    }
+  };
 
 
   // Мягкое удаление/восстановление
   const handleDeleteRestore = async () => {
     if (!(hasRole('ADMIN') || (hasRole('WRITER') && canEditArticle))) {
-        showError('У вас нет прав на редактирование статьи');
-        return;
+      showError('У вас нет прав на редактирование статьи');
+      return;
     }
     const newIsDelete = !selectedArticle.isDelete;
     const action = newIsDelete ? 'отключить' : 'восстановить';
@@ -286,28 +311,28 @@ const handleFeedbackSubmit = async (e) => {
       message: `Вы уверены, что хотите ${action} статью "${title}"?`,
       onConfirm: async () => {
         try {
-            const result = await softDeleteArticle(id, newIsDelete);
-            if (result === true || (typeof result === 'object' && result !== null)) {
-              logAction('INFO', newIsDelete ? 'ARTICLE_DELETED' : 'ARTICLE_RESTORED', `Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`, {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-              });
-              showSuccess(`Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`);
-            } else {
-              throw new Error(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью`);
-            }
-        } catch (err) {
-            console.error(`Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи:`, err);
-            logAction('ERROR', newIsDelete ? 'ARTICLE_DELETE_FAIL' : 'ARTICLE_RESTORE_FAIL', `Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи`, {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-                error: err.message || String(err)
+          const result = await softDeleteArticle(id, newIsDelete);
+          if (result === true || (typeof result === 'object' && result !== null)) {
+            logAction('INFO', newIsDelete ? 'ARTICLE_DELETED' : 'ARTICLE_RESTORED', `Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`, {
+              articleId: id,
+              articleTitle: title,
+              userEmail,
             });
-            showError(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью: ${err.message || 'Неизвестная ошибка'}`);
+            showSuccess(`Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`);
+          } else {
+            throw new Error(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью`);
+          }
+        } catch (err) {
+          console.error(`Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи:`, err);
+          logAction('ERROR', newIsDelete ? 'ARTICLE_DELETE_FAIL' : 'ARTICLE_RESTORE_FAIL', `Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи`, {
+            articleId: id,
+            articleTitle: title,
+            userEmail,
+            error: err.message || String(err)
+          });
+          showError(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью: ${err.message || 'Неизвестная ошибка'}`);
         } finally {
-            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
       },
     });
@@ -324,8 +349,8 @@ const handleFeedbackSubmit = async (e) => {
       return;
     }
     if (!selectedArticle) {
-        showError('Статья не загружена');
-        return;
+      showError('Статья не загружена');
+      return;
     }
     const title = selectedArticle.title;
     setConfirmModal({
@@ -334,30 +359,30 @@ const handleFeedbackSubmit = async (e) => {
       message: `Вы уверены, что хотите полностью удалить статью "${title}"? Это действие нельзя отменить.`,
       onConfirm: async () => {
         try {
-            const success = await hardDeleteArticle(id);
-            console.log("Результат hardDeleteArticle:", success);
-            if (success === true) {
-              logAction('INFO', 'ARTICLE_HARD_DELETED', 'Статья полностью удалена', {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-              });
-              showSuccess('Статья удалена навсегда');
-              navigate('/'); // Перенаправление после удаления
-            } else {
-              throw new Error('Не удалось удалить статью');
-            }
-        } catch (err) {
-            console.error('Ошибка при полном удалении статьи:', err);
-            logAction('ERROR', 'ARTICLE_HARD_DELETE_FAIL', 'Ошибка при полном удалении статьи', {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-                error: err.message || String(err)
+          const success = await hardDeleteArticle(id);
+          console.log("Результат hardDeleteArticle:", success);
+          if (success === true) {
+            logAction('INFO', 'ARTICLE_HARD_DELETED', 'Статья полностью удалена', {
+              articleId: id,
+              articleTitle: title,
+              userEmail,
             });
-            showError('Не удалось удалить статью: ' + (err.message || 'Неизвестная ошибка'));
+            showSuccess('Статья удалена навсегда');
+            navigate('/'); // Перенаправление после удаления
+          } else {
+            throw new Error('Не удалось удалить статью');
+          }
+        } catch (err) {
+          console.error('Ошибка при полном удалении статьи:', err);
+          logAction('ERROR', 'ARTICLE_HARD_DELETE_FAIL', 'Ошибка при полном удалении статьи', {
+            articleId: id,
+            articleTitle: title,
+            userEmail,
+            error: err.message || String(err)
+          });
+          showError('Не удалось удалить статью: ' + (err.message || 'Неизвестная ошибка'));
         } finally {
-            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
       },
     });
@@ -415,16 +440,16 @@ const handleFeedbackSubmit = async (e) => {
   // --- Функция для удаления версии ---
   const handleDeleteVersion = async (versionNum) => {
     if (!isOwnerOrAdmin) {
-        showError('У вас нет прав на удаление версии статьи');
-        logAction('WARN', 'VERSION_DELETE_FORBIDDEN', 'Попытка удаления версии без прав администратора', {
-            articleId: id,
-            userEmail,
-        });
-        return;
+      showError('У вас нет прав на удаление версии статьи');
+      logAction('WARN', 'VERSION_DELETE_FORBIDDEN', 'Попытка удаления версии без прав администратора', {
+        articleId: id,
+        userEmail,
+      });
+      return;
     }
     if (!versionNum || !selectedArticle) {
-        showError('Версия или статья не загружены');
-        return;
+      showError('Версия или статья не загружены');
+      return;
     }
     const title = selectedArticle.title;
     setConfirmModal({
@@ -433,36 +458,36 @@ const handleFeedbackSubmit = async (e) => {
       message: `Вы уверены, что хотите удалить версию ${versionNum} статьи "${title}"? Это действие нельзя отменить.`,
       onConfirm: async () => {
         try {
-            // Вызываем метод из store
-            const success = await deleteArticleVersion(selectedArticle.id, versionNum);
-            console.log("Результат deleteArticleVersion из store:", success);
-            if (success === true) {
-              logAction('INFO', 'ARTICLE_VERSION_DELETED', `Версия ${versionNum} статьи удалена`, {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-              });
-              showSuccess(`Версия ${versionNum} удалена`);
-              // Перезагрузим список версий - теперь вызов через store
-              await fetchArticleVersions(selectedArticle.id);
-              // Если удаляемая версия была текущей просматриваемой, выйдем из режима просмотра
-              if (isViewingVersion && selectedVersion && selectedVersion.version === versionNum) {
-                 setIsViewingVersion(false);
-              }
-            } else {
-              throw new Error('Не удалось удалить версию через store');
-            }
-        } catch (err) {
-            console.error('Ошибка при удалении версии статьи:', err);
-            logAction('ERROR', 'ARTICLE_VERSION_DELETE_FAIL', `Ошибка при удалении версии ${versionNum}`, {
-                articleId: id,
-                articleTitle: title,
-                userEmail,
-                error: err.message || String(err)
+          // Вызываем метод из store
+          const success = await deleteArticleVersion(selectedArticle.id, versionNum);
+          console.log("Результат deleteArticleVersion из store:", success);
+          if (success === true) {
+            logAction('INFO', 'ARTICLE_VERSION_DELETED', `Версия ${versionNum} статьи удалена`, {
+              articleId: id,
+              articleTitle: title,
+              userEmail,
             });
-            showError('Не удалось удалить версию: ' + (err.message || 'Неизвестная ошибка'));
+            showSuccess(`Версия ${versionNum} удалена`);
+            // Перезагрузим список версий - теперь вызов через store
+            await fetchArticleVersions(selectedArticle.id);
+            // Если удаляемая версия была текущей просматриваемой, выйдем из режима просмотра
+            if (isViewingVersion && selectedVersion && selectedVersion.version === versionNum) {
+              setIsViewingVersion(false);
+            }
+          } else {
+            throw new Error('Не удалось удалить версию через store');
+          }
+        } catch (err) {
+          console.error('Ошибка при удалении версии статьи:', err);
+          logAction('ERROR', 'ARTICLE_VERSION_DELETE_FAIL', `Ошибка при удалении версии ${versionNum}`, {
+            articleId: id,
+            articleTitle: title,
+            userEmail,
+            error: err.message || String(err)
+          });
+          showError('Не удалось удалить версию: ' + (err.message || 'Неизвестная ошибка'));
         } finally {
-            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
       },
     });
@@ -471,8 +496,8 @@ const handleFeedbackSubmit = async (e) => {
   // --- Функция для сравнения текущей версии с просматриваемой ---
   const handleCompareWithCurrent = async () => {
     if (!isViewingVersion || !selectedVersion || !selectedArticle) {
-        showError('Нет версии для сравнения.');
-        return;
+      showError('Нет версии для сравнения.');
+      return;
     }
     try {
       await compareArticleVersion(selectedArticle.id, selectedVersion.version);
@@ -547,51 +572,55 @@ const handleFeedbackSubmit = async (e) => {
   }, [showVersionDropdown]);
 
   // Рендер описания
-const renderDescription = (description) => {
-  if (isViewingVersion && selectedVersion) {
-    const versionDescription = selectedVersion.description;
-    const html = deltaToHtml(versionDescription);
-    return (
-      <div>
-        {/* --- СТИЛИЗОВАННЫЙ БЛОК ИНФОРМАЦИИ О ВЕРСИИ --- */}
-        <div className="version-info-bar">
-          <strong>Просмотр версии {selectedVersion.version}</strong>
-          <div className="version-info-buttons">
-            <button onClick={handleCompareWithCurrent} className="btn btn-secondary version-info-btn" title="Сравнить с текущей версией">
-              ↔️ Сравнить с текущей
-            </button>
-            <button onClick={handleExitViewVersion} className="btn btn-secondary version-info-btn" title="Вернуться к текущей версии">
-              ← Вернуться к текущей
-            </button>
-          </div>
-        </div>
-        
-            {/* --- КОНЕЦ СТИЛИЗОВАННОГО БЛОКА --- */}
-            <div
-              className="html-content"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
-            />
-            {/* >>> ВСТАВИТЬ СЮДА <<< */}
-        {isViewingVersion && selectedVersion && (
-          <div className="version-meta">
-            <div className="version-badge">Версия v{selectedVersion.version}</div>
-            <div className="version-author">
-              Автор версии: {selectedVersion.editedByEmail || 'неизвестно'}
+  const renderDescription = (description) => {
+    if (isViewingVersion && selectedVersion) {
+      const versionDescription = selectedVersion.description;
+      const html = deltaToHtml(versionDescription);
+      return (
+        <div>
+          {/* --- СТИЛИЗОВАННЫЙ БЛОК ИНФОРМАЦИИ О ВЕРСИИ --- */}
+          <div className="version-info-bar">
+            <strong>Просмотр версии {selectedVersion.version}</strong>
+            <div className="version-info-buttons">
+              <button onClick={handleCompareWithCurrent} className="btn btn-secondary version-info-btn" title="Сравнить с текущей версией">
+                ↔️ Сравнить с текущей
+              </button>
+              <button onClick={handleExitViewVersion} className="btn btn-secondary version-info-btn" title="Вернуться к текущей версии">
+                ← Вернуться к текущей
+              </button>
             </div>
-            {selectedVersion.editedByName && (
-              <div className="version-author-name">
-                Имя: {selectedVersion.editedByName}
-              </div>
-            )}
-            {selectedVersion.editedAt && (
-              <div className="version-date">
-                Дата: {new Date(selectedVersion.editedAt).toLocaleString()}
-              </div>
-            )}
           </div>
-        )}
-          </div>
-        );
+
+          {/* --- КОНЕЦ СТИЛИЗОВАННОГО БЛОКА --- */}
+          <div
+            className="html-content"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
+          />
+          {/* >>> ВСТАВИТЬ СЮДА <<< */}
+          {isViewingVersion && selectedVersion && (
+            <div className="version-meta">
+              <div className="version-badge">Версия v{selectedVersion.version}</div>
+              <div className="version-author">
+  Автор версии: {versionAuthor?.email || 'неизвестно'}
+</div>
+{versionAuthor?.name && (
+  <div className="version-author-name">
+    Имя: {versionAuthor.name}
+  </div>
+)}
+<div className="version-date">
+  Дата: {
+    // пока сервер не отдаёт createdAt автора заявки — используем editedAt снимка
+    selectedVersion?.editedAt
+      ? new Date(selectedVersion.editedAt).toLocaleString()
+      : 'неизвестно'
+  }
+</div>
+            </div>
+          )}
+
+        </div>
+      );
     }
     // УБРАНО: рендеринг модального окна сравнения из renderDescription
     const html = deltaToHtml(description);
@@ -606,15 +635,15 @@ const renderDescription = (description) => {
   // --- УЛУЧШЕННАЯ Функция для рендеринга сравнения версий ---
   const renderComparison = (compareResult) => {
     if (!compareResult) {
-        return <div>Нет данных для сравнения.</div>;
+      return <div>Нет данных для сравнения.</div>;
     }
     const allChanges = [];
     console.log("Обработка descriptionTextDeltas:", compareResult.descriptionTextDeltas);
     if (compareResult.descriptionTextDeltas && Array.isArray(compareResult.descriptionTextDeltas)) {
       compareResult.descriptionTextDeltas.forEach((deltaChange, index) => {
         if (!deltaChange.type) {
-            console.warn("Найдена запись изменения без типа:", deltaChange);
-            return;
+          console.warn("Найдена запись изменения без типа:", deltaChange);
+          return;
         }
         const sourceText = (deltaChange.source || '').trim();
         const targetText = (deltaChange.target || '').trim();
@@ -634,7 +663,7 @@ const renderDescription = (description) => {
             allChanges.push({ type: 'ADDED', content: targetText, key: `change-target-${index}` });
           }
         } else {
-             console.warn("Неизвестный тип изменения:", deltaChange.type, deltaChange);
+          console.warn("Неизвестный тип изменения:", deltaChange.type, deltaChange);
         }
       });
     }
@@ -679,16 +708,16 @@ const renderDescription = (description) => {
     console.log("Все изменения для отображения (allChanges):", allChanges);
     let versionInfo = `Результаты сравнения (Версия ${compareResult.fromVersion}`;
     if (compareResult.toVersion !== undefined) {
-        versionInfo += ` → Текущая версия`;
+      versionInfo += ` → Текущая версия`;
     } else {
-        versionInfo += ` → Текущая версия`;
+      versionInfo += ` → Текущая версия`;
     }
     versionInfo += ")";
 
     return (
       <div className="comparison-result">
         <h4>{versionInfo}</h4>
-        <div className="diff-container" style={{height: '300px'}}>
+        <div className="diff-container" style={{ height: '300px' }}>
           {allChanges.length > 0 ? (
             allChanges.map((change) => (
               <div key={change.key} className={`diff-line ${change.type ? change.type.toLowerCase() : 'unchanged'}`}>
@@ -812,9 +841,9 @@ const renderDescription = (description) => {
           </div>
           <div className="content-wrapper">
             {renderDescription(selectedArticle.description)}
-            
 
-            
+
+
           </div>
         </div>
 
@@ -906,42 +935,42 @@ const renderDescription = (description) => {
           }}
         >
           <div className="version-list-title">Все версии</div>
-<ul className="version-list">
-  {articleVersions.map(version => {
-    let dateStr = 'N/A';
-    if (version.editedAt) {
-      try {
-        const dateObj = new Date(version.editedAt);
-        if (!isNaN(dateObj)) {
-          dateStr = dateObj.toLocaleDateString('ru-RU');
-        }
-      } catch (e) {
-        console.error("Ошибка форматирования даты:", e);
-      }
-    }
-    return (
-      <li key={`version-${version.version}`} className="version-item">
-        <div className="version-info" onClick={() => handleViewVersion(version.version)}>
-          <span className="version-number">Версия {version.version}</span>
-          <span className="version-date">{dateStr}</span>
-        </div>
+          <ul className="version-list">
+            {articleVersions.map(version => {
+              let dateStr = 'N/A';
+              if (version.editedAt) {
+                try {
+                  const dateObj = new Date(version.editedAt);
+                  if (!isNaN(dateObj)) {
+                    dateStr = dateObj.toLocaleDateString('ru-RU');
+                  }
+                } catch (e) {
+                  console.error("Ошибка форматирования даты:", e);
+                }
+              }
+              return (
+                <li key={`version-${version.version}`} className="version-item">
+                  <div className="version-info" onClick={() => handleViewVersion(version.version)}>
+                    <span className="version-number">Версия {version.version}</span>
+                    <span className="version-date">{dateStr}</span>
+                  </div>
 
-        {isOwnerOrAdmin && (
-          <button
-            className="btn btn-danger version-delete-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteVersion(version.version);
-            }}
-            title="Удалить версию"
-          >
-            🗑️
-          </button>
-        )}
-      </li>
-    );
-  })}
-</ul>
+                  {isOwnerOrAdmin && (
+                    <button
+                      className="btn btn-danger version-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteVersion(version.version);
+                      }}
+                      title="Удалить версию"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
         </div>,
         document.body // Рендерим в body

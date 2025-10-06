@@ -1,35 +1,35 @@
-import axios from "axios";
+// src/api/apiClient.js
+import axios from 'axios';
 
-
+// В production используем относительные пути, в development - имена сервисов Docker
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const LOGGER_BASE_URL = process.env.NODE_ENV === 'production' ? '/logger' : 'http://localhost:3001';
 
 export const ApiClient = axios.create({
-  baseURL: 'http://localhost:8080', // ← напрямую на Kotlin
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
-// 🔹 Логи — Node.js
 export const LogClient = axios.create({
-  baseURL: 'http://localhost:3001', // ← Node.js собирает логи
+  baseURL: LOGGER_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: false, // обычно не нужно
+  withCredentials: false,
 });
-// Удаляем заголовок Content-Type для multipart/form-data запросов
-// Axios автоматически установит правильный заголовок с boundary
+
 ApiClient.interceptors.request.use(
-    (config) => {
-        if (config.data instanceof FormData) {
-            delete config.headers['Content-Type'];
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+  (config) => {
+    if (config?.data instanceof FormData) {
+      if (config.headers && typeof config.headers === 'object') {
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
+      }
     }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
-
-

@@ -1,22 +1,23 @@
 // src/pages/CategoryPage.jsx
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCategoryStore } from '../store/categoryStore';
 import { useArticleStore } from '../store/articleStore';
 import { useAuthStore } from '../store/authStore';
 import { useAccessRoleStore } from '../store/accessRoleStore';
 import ArticleCard from '../component/ArticleCard';
-import CategorySelectorTree from '../component/CategorySelectorTree'; // Импорт нового компонента
+import CategorySelectorTree from '../component/CategorySelectorTree';
 import '../style/CategoryPage.css';
-import { Folder, Plus, Edit, Trash2, EyeOff } from 'lucide-react';
+import { Folder, Plus, Edit, EyeOff } from 'lucide-react';
 import { showSuccess, showError, showWarning } from '../utils/toastUtils';
 import ConfirmationModal from '../component/ConfirmationModal';
-import { writerPermissionsAPI } from '../api/apiServese'; // Импортируем API
+import { writerPermissionsAPI } from '../api/apiServese';
 
 const CategoryPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const categoryId = useMemo(() => Number(id), [id]);
+
   const {
     categories,
     selectedCategory,
@@ -30,6 +31,7 @@ const CategoryPage = () => {
     updateCategory,
     softDeleteCategory,
   } = useCategoryStore();
+
   const {
     articles,
     articlesByCategory,
@@ -37,20 +39,24 @@ const CategoryPage = () => {
     fetchGuestArticlesByCategory,
     isLoading: articlesLoading
   } = useArticleStore();
+
   const { accessRoles, fetchAllAccessRoles } = useAccessRoleStore();
-  const { isAuthenticated, hasRole, userId } = useAuthStore();
+  const { isAuthenticated, hasRole } = useAuthStore();
 
   // 🔍 Локальный поиск
   const [searchQuery, setSearchQuery] = useState('');
   const [localLoading, setLocalLoading] = useState(true);
+
   // Состояния для выпадающих меню
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRefs = useRef({});
+
   // Состояния для модальных окон
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [parentCategory, setParentCategory] = useState(null);
+
   // Состояния для форм
   const [newCategory, setNewCategory] = useState({
     description: '',
@@ -58,6 +64,7 @@ const CategoryPage = () => {
     accessRoles: [],
     parentId: null,
   });
+
   const [editCategory, setEditCategory] = useState({
     id: null,
     description: '',
@@ -65,55 +72,45 @@ const CategoryPage = () => {
     accessRoles: [],
     parentId: null,
   });
+
   // Состояние для модального окна подтверждения
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   // === Состояния для проверки прав WRITER ===
-  const [canWriterEdit, setCanWriterEdit] = useState(null); // null - не проверяли/не нужно, true/false - результат
+  const [canWriterEdit, setCanWriterEdit] = useState(null);
   const [isWriterPermissionLoading, setIsWriterPermissionLoading] = useState(false);
   const [writerPermissionError, setWriterPermissionError] = useState(null);
 
   // === Функция для проверки прав WRITER ===
   const checkWriterPermission = async (catId) => {
-    // Проверяем, нужно ли вообще выполнять проверку
-    if (
-      !isAuthenticated ||
-      !hasRole('WRITER') ||
-      catId === null ||
-      catId === undefined ||
-      isNaN(catId)
-    ) {
-      // Если проверка не требуется, сбрасываем состояние
+    if (!isAuthenticated || !hasRole('WRITER') || catId == null || isNaN(catId)) {
       if (canWriterEdit !== null) setCanWriterEdit(null);
       return;
     }
-
     setIsWriterPermissionLoading(true);
     setWriterPermissionError(null);
     try {
-      // Вызов API для проверки прав
       const response = await writerPermissionsAPI.canEditArticle(catId);
-      // Предполагаем, что API возвращает { data: true } или { data: false }
       const isAllowed = response?.data === true;
       setCanWriterEdit(isAllowed);
     } catch (err) {
       console.error(`Ошибка проверки прав WRITER для категории ${catId}:`, err);
       setWriterPermissionError('Не удалось проверить права доступа.');
-      setCanWriterEdit(false); // Считаем, что доступа нет в случае ошибки
+      setCanWriterEdit(false);
     } finally {
       setIsWriterPermissionLoading(false);
     }
   };
 
-  // === Эффект для запуска проверки прав при изменении categoryId или роли пользователя ===
+  // Проверка прав при изменении categoryId или роли
   useEffect(() => {
     checkWriterPermission(categoryId);
-  }, [categoryId, isAuthenticated, hasRole]); // Зависимости: categoryId, isAuthenticated, hasRole
+  }, [categoryId, isAuthenticated, hasRole]);
 
   // Загрузка ролей доступа
   useEffect(() => {
@@ -149,7 +146,7 @@ const CategoryPage = () => {
     };
   }, [categoryId, isAuthenticated, fetchCategories, fetchGuestCategories]);
 
-  // Отдельный эффект для установки выбранной категории
+  // Устанавливаем выбранную категорию
   useEffect(() => {
     if (!localLoading && categories.length > 0) {
       const foundCategory = categories.find((cat) => cat.id === categoryId);
@@ -181,7 +178,7 @@ const CategoryPage = () => {
     };
   }, [categoryId, fetchChildCategories]);
 
-  // Загрузка статей при изменении категории или статуса авторизации
+  // Загрузка статей для текущей категории
   useEffect(() => {
     let isMounted = true;
     const loadArticles = async () => {
@@ -205,16 +202,18 @@ const CategoryPage = () => {
     };
   }, [categoryId, isAuthenticated, fetchArticlesByCategory, fetchGuestArticlesByCategory]);
 
-  // Обработчики для выпадающего меню
+  // Разные утилиты
   const toggleDropdown = (id, event) => {
     event.stopPropagation();
     setOpenDropdownId(openDropdownId === id ? null : id);
   };
+
   const handleClickOutside = (event) => {
     if (openDropdownId && dropdownRefs.current[openDropdownId] && !dropdownRefs.current[openDropdownId].contains(event.target)) {
       setOpenDropdownId(null);
     }
   };
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -243,28 +242,139 @@ const CategoryPage = () => {
   // Получаем дочерние категории
   const currentChildCategories = childCategories[categoryId] || [];
 
-  // Получаем статьи текущей категории
+  // Статьи текущей категории
   const categoryArticles = isAuthenticated
-    ? articles.filter(
-      (article) =>
-        (article.categoryDto?.id || article.categoryId) === categoryId
-    )
-    : articlesByCategory[categoryId] || [];
+    ? (articles || []).filter(
+        (article) =>
+          (article.categoryDto?.id || article.categoryId || article.category?.id) === categoryId
+      )
+    : (articlesByCategory[categoryId] || []);
 
-  // 🔍 Фильтрация по поисковому запросу
+  // 🔍 Фильтрация по поисковому запросу (только текущая категория)
   const filteredArticles = searchQuery
     ? categoryArticles.filter((article) => {
-      const query = searchQuery.toLowerCase();
-      return (
-        article.title.toLowerCase().includes(query) ||
-        (article.description?.ops &&
-          Array.isArray(article.description.ops) &&
-          article.description.ops.some((op) =>
-            typeof op.insert === 'string' ? op.insert.toLowerCase().includes(query) : false
-          ))
-      );
-    })
+        const query = searchQuery.toLowerCase();
+        return (
+          article.title?.toLowerCase?.().includes(query) ||
+          (article.description?.ops &&
+            Array.isArray(article.description.ops) &&
+            article.description.ops.some((op) =>
+              typeof op.insert === 'string' ? op.insert.toLowerCase().includes(query) : false
+            ))
+        );
+      })
     : categoryArticles;
+
+  // =======================
+  // Подсчет по дереву категорий
+  // =======================
+
+  // Все ID потомков (включая текущую)
+  const descendantIds = useMemo(() => {
+    const root = Number(categoryId);
+    if (Number.isNaN(root)) return [];
+    const ids = new Set([root]);
+
+    const byParent = (Array.isArray(categories) ? categories : []).reduce((acc, c) => {
+      const pid = c?.parentId ?? null;
+      const cid = Number(c?.id);
+      if (!Number.isNaN(cid)) {
+        (acc[pid] ||= []).push(cid);
+      }
+      return acc;
+    }, {});
+
+    const stack = [root];
+    let guard = 0;
+    while (stack.length && guard < 5000) {
+      const cur = stack.pop();
+      const children = byParent[cur] || [];
+      for (const cid of children) {
+        if (!ids.has(cid)) {
+          ids.add(cid);
+          stack.push(cid);
+        }
+      }
+      guard++;
+    }
+    if (guard >= 5000) {
+      console.warn('Ограничение на глубину обхода дерева категорий достигнуто.');
+    }
+    return Array.from(ids);
+  }, [categories, categoryId]);
+
+  // Предикат поиска
+  const matchesSearch = useCallback(
+    (article) => {
+      if (!searchQuery) return true;
+      const q = String(searchQuery).toLowerCase();
+      const titleOk = article?.title?.toLowerCase?.().includes(q);
+      const ops = article?.description?.ops;
+      const bodyOk = Array.isArray(ops) && ops.some(op => typeof op.insert === 'string' && op.insert.toLowerCase().includes(q));
+      return Boolean(titleOk || bodyOk);
+    },
+    [searchQuery]
+  );
+
+  // Реф для защиты от повторных fetch по дочерним категориям
+  const fetchedDescendantIdsRef = useRef(new Set());
+
+  // Сбрасываем cache при смене корневой категории
+  useEffect(() => {
+    fetchedDescendantIdsRef.current = new Set();
+  }, [categoryId]);
+
+  // Догружаем статьи для дочерних категорий (единожды на id)
+  useEffect(() => {
+    if (!Array.isArray(descendantIds) || descendantIds.length === 0) return;
+
+    const otherIds = descendantIds.filter(idNum => idNum !== Number(categoryId));
+    if (otherIds.length === 0) return;
+
+    // ВАЖНО: не добавлять в зависимости articles/articlesByCategory/функции,
+    // чтобы избежать каскада перезапусков на каждую загрузку.
+    for (const cid of otherIds) {
+      if (fetchedDescendantIdsRef.current.has(cid)) continue;
+
+      if (isAuthenticated) {
+        const hasAny = (articles || []).some(a => {
+          const aCid = a?.categoryDto?.id ?? a?.categoryId ?? a?.category?.id;
+          return Number(aCid) === Number(cid);
+        });
+        // Помечаем заранее, чтобы не дублировать вызовы при быстром ре-рендере
+        fetchedDescendantIdsRef.current.add(cid);
+        if (!hasAny) {
+          // Запускаем подзагрузку для потомка
+          fetchArticlesByCategory(cid);
+        }
+      } else {
+        const hasBucket = Boolean(articlesByCategory && articlesByCategory[cid]);
+        fetchedDescendantIdsRef.current.add(cid);
+        if (!hasBucket) {
+          fetchGuestArticlesByCategory(cid);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [descendantIds, categoryId, isAuthenticated]);
+
+  // Все статьи по дереву категорий (учитывая поиск)
+  const allArticlesInTree = useMemo(() => {
+    if (!Array.isArray(descendantIds) || descendantIds.length === 0) return [];
+    const idSet = new Set(descendantIds.map(Number));
+
+    if (isAuthenticated) {
+      return (articles || [])
+        .filter(a => {
+          const cid = a?.categoryDto?.id ?? a?.categoryId ?? a?.category?.id;
+          return cid && idSet.has(Number(cid));
+        })
+        .filter(matchesSearch);
+    } else {
+      const buckets = descendantIds.map(idNum => articlesByCategory[idNum] || []);
+      return buckets.flat().filter(matchesSearch);
+    }
+  }, [isAuthenticated, descendantIds, articles, articlesByCategory, matchesSearch]);
 
   // Очистка поиска
   const clearSearch = () => {
@@ -274,7 +384,7 @@ const CategoryPage = () => {
   // Определяем текущую категорию
   const currentCategory = selectedCategory || categories.find((cat) => cat.id === categoryId);
 
-  // ✅ Функция для получения пути к категории (навигация)
+  // Навигация
   const getCategoryPath = (category) => {
     const path = [];
     let current = category;
@@ -295,15 +405,13 @@ const CategoryPage = () => {
       iterations++;
     }
     if (iterations >= maxIterations) {
-      console.error("Превышено максимальное количество итераций при построении пути категории. Возможна циклическая ссылка.");
+      console.error('Превышено максимальное количество итераций при построении пути категории. Возможна циклическая ссылка.');
     }
     return path;
   };
 
-  // Получаем путь к текущей категории
   const categoryPath = currentCategory ? getCategoryPath(currentCategory) : [];
 
-  // ✅ Обработчики навигации теперь используют navigate(-1) и navigate(1)
   const handleBack = () => {
     navigate(-1);
   };
@@ -360,17 +468,15 @@ const CategoryPage = () => {
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Изменение поля ${name} в форме редактирования на:`, value);
     if (name === 'parentId') {
       let parentIdValue = null;
       if (value !== '' && value !== 'null') {
         parentIdValue = parseInt(value, 10);
         if (isNaN(parentIdValue)) {
-          console.warn("Некорректное значение parentId, установлено в null:", value);
+          console.warn('Некорректное значение parentId, установлено в null:', value);
           parentIdValue = null;
         }
       }
-      console.log("Обработанное значение parentId:", parentIdValue);
       setEditCategory(prev => ({ ...prev, parentId: parentIdValue }));
     } else {
       setEditCategory(prev => ({ ...prev, [name]: value }));
@@ -422,7 +528,7 @@ const CategoryPage = () => {
         showError('Ошибка при создании категории');
       }
     } catch (error) {
-      console.error("Ошибка при создании категории:", error);
+      console.error('Ошибка при создании категории:', error);
       showError('Ошибка при создании категории: ' + (error.message || ''));
     }
   };
@@ -430,7 +536,6 @@ const CategoryPage = () => {
   // === Редактирование категории ===
   const handleEditCategory = async (e) => {
     e.preventDefault();
-    console.log("Данные editCategory перед отправкой:", editCategory);
     const updateCategoryDto = {
       id: editCategory.id,
       description: editCategory.description,
@@ -438,7 +543,6 @@ const CategoryPage = () => {
       accessRolesDto: editCategory.accessRoles,
       parentId: editCategory.parentId,
     };
-    console.log("Отправка updateCategoryDto на сервер:", updateCategoryDto);
     try {
       const updateSuccess = await updateCategory(editCategory.id, updateCategoryDto);
       if (updateSuccess) {
@@ -454,7 +558,7 @@ const CategoryPage = () => {
         showError('Ошибка при обновлении категории');
       }
     } catch (error) {
-      console.error("Ошибка при редактировании категории:", error);
+      console.error('Ошибка при редактировании категории:', error);
       showError('Ошибка при обновлении категории: ' + (error.message || ''));
     }
   };
@@ -484,19 +588,16 @@ const CategoryPage = () => {
             showError('Ошибка при отключении категории');
           }
         } catch (error) {
-          console.error("Ошибка при отключении категории:", error);
+          console.error('Ошибка при отключении категории:', error);
           showError('Ошибка при отключении категории: ' + (error.message || ''));
         } finally {
-          setConfirmModal({ ...confirmModal, isOpen: false });
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
       },
     });
   };
 
-  // === Определяем, должен ли пользователь видеть кнопки создания ===
-  // Показываем кнопки, если:
-  // 1. Пользователь админ (ADMIN)
-  // 2. ИЛИ пользователь писатель (WRITER) И проверка прав завершена И есть права на редактирование
+  // === Права на создание ===
   const showCreateButtons = useMemo(() => {
     return isAuthenticated && (
       hasRole('ADMIN') ||
@@ -504,7 +605,7 @@ const CategoryPage = () => {
     );
   }, [isAuthenticated, hasRole, isWriterPermissionLoading, canWriterEdit]);
 
-  // Показываем загрузку если данные еще не загружены
+  // Скелетон/загрузка
   if (localLoading || categoriesLoading || (isNaN(categoryId))) {
     return (
       <div className="knowledgehub-empty-articles-state">
@@ -516,7 +617,7 @@ const CategoryPage = () => {
     );
   }
 
-  // Если категория не найдена
+  // Не найдена
   if (!currentCategory && !localLoading && categories.length > 0) {
     return (
       <div className="knowledgehub-empty-articles-state">
@@ -526,7 +627,7 @@ const CategoryPage = () => {
     );
   }
 
-  // Если категория еще загружается
+  // Еще не готовы данные текущей категории
   if (!currentCategory) {
     return (
       <div className="knowledgehub-empty-articles-state">
@@ -548,10 +649,11 @@ const CategoryPage = () => {
           </h1>
           <div className="knowledgehub-category-meta">
             <span className="knowledgehub-article-count">
-              {filteredArticles.length} {getArticleWord(filteredArticles.length)}
+              {allArticlesInTree.length} {getArticleWord(allArticlesInTree.length)}
             </span>
           </div>
         </div>
+
         {/* Поиск внутри категории */}
         <div className="knowledgehub-category-search">
           <div className="knowledgehub-search-wrapper">
@@ -588,7 +690,8 @@ const CategoryPage = () => {
           </div>
         </div>
       </header>
-      {/* Навигационная панель с кнопками "Назад" и "Вперёд" */}
+
+      {/* Навигационная панель */}
       <div className="knowledgehub-breadcrumb-navigation">
         <div className="knowledgehub-back-forward-controls">
           <button
@@ -610,6 +713,7 @@ const CategoryPage = () => {
             </svg>
           </button>
         </div>
+
         {/* Хлебные крошки */}
         <nav aria-label="Навигация по категориям">
           <ol className="breadcrumb">
@@ -640,7 +744,8 @@ const CategoryPage = () => {
           </ol>
         </nav>
       </div>
-      {/* Условно отображаем кнопки создания */}
+
+      {/* Кнопки создания */}
       {showCreateButtons && (
         <div className="knowledgehub-create-buttons">
           <button
@@ -698,11 +803,12 @@ const CategoryPage = () => {
                     </div>
                   </div>
                 </Link>
+
                 {/* Выпадающее меню для подкатегории */}
                 {isAuthenticated && (hasRole('ADMIN') || (hasRole('WRITER') && canWriterEdit)) && (
                   <div className="knowledgehub-dropdown-container">
                     <button
-                      className='drop_down_menu'
+                      className="drop_down_menu"
                       onClick={(e) => toggleDropdown(subcategory.id, e)}
                       aria-haspopup="true"
                       aria-expanded={openDropdownId === subcategory.id}
@@ -735,6 +841,7 @@ const CategoryPage = () => {
           </div>
         </section>
       )}
+
       {/* Список статей */}
       <main className="knowledgehub-articles-section">
         <h2 className="knowledgehub-subcategories-title">Статьи</h2>
@@ -765,6 +872,7 @@ const CategoryPage = () => {
           </div>
         )}
       </main>
+
       {/* Модальное окно: создание */}
       {showCreateModal && (
         <div
@@ -865,6 +973,7 @@ const CategoryPage = () => {
           </div>
         </div>
       )}
+
       {/* Модальное окно: редактирование */}
       {showEditModal && editingCategory && (
         <div
@@ -911,15 +1020,14 @@ const CategoryPage = () => {
                 />
               </div>
 
-              {/* === Начало замены select на дерево === */}
+              {/* Выбор родителя через дерево */}
               <div className="cmp-form-group">
                 <label>Родительская категория</label>
                 <div className="category-selector" style={{ maxHeight: '200px', overflowY: 'auto' }}>
                   <CategorySelectorTree
-                    categories={categories.filter(cat => cat.id !== editingCategory.id)} // Исключаем редактируемую категорию
+                    categories={categories.filter(cat => cat.id !== editingCategory.id)}
                     selectedCategoryId={editCategory.parentId ? String(editCategory.parentId) : ''}
                     onSelect={(selectedId) => {
-                      // Преобразуем обратно в число или null
                       let parentIdValue = null;
                       if (selectedId !== '' && selectedId !== 'null') {
                         parentIdValue = parseInt(selectedId, 10);
@@ -930,7 +1038,6 @@ const CategoryPage = () => {
                   />
                 </div>
               </div>
-              {/* === Конец замены === */}
 
               <div className="cmp-form-group_role">
                 <label>Роли доступа</label>
@@ -975,6 +1082,7 @@ const CategoryPage = () => {
           </div>
         </div>
       )}
+
       {/* Модальное окно: подтверждение */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
@@ -986,4 +1094,5 @@ const CategoryPage = () => {
     </div>
   );
 };
+
 export default CategoryPage;

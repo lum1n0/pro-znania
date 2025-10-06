@@ -16,13 +16,17 @@ class WebSocketConfig(private val jwtChannelInterceptor: JwtChannelInterceptor) 
         config.setApplicationDestinationPrefixes("/app")
     }
 
-    override fun registerStompEndpoints(registry: StompEndpointRegistry) {
-        registry.addEndpoint("/chat")
-            .setAllowedOriginPatterns("http://localhost:4200")
-            .withSockJS()
-            .setSessionCookieNeeded(false)
-            .setHeartbeatTime(25000)
-    }
+override fun registerStompEndpoints(registry: StompEndpointRegistry) {
+    registry.addEndpoint("/chat")
+        .setAllowedOriginPatterns(
+            "http://localhost:4200",
+            "http://pro-znania-test:4200",
+            "http://pro-znania-test.llc.tagras.corp:4200"
+        )
+        .withSockJS()
+        .setSessionCookieNeeded(false)
+        .setHeartbeatTime(25000)
+}
 
     override fun configureClientInboundChannel(registration: ChannelRegistration) {
         registration.interceptors(jwtChannelInterceptor)

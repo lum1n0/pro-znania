@@ -144,25 +144,65 @@
 }
 
 /* Темизация иконок и полос */
-.admin-card.users .card-icon { color: #3498db; }
-.admin-card.users::before { background: #3498db; }
-.admin-card.users:hover::before { background: #2980b9; }
+.admin-card.users .card-icon {
+  color: #3498db;
+}
 
-.admin-card.categories .card-icon { color: #e67e22; }
-.admin-card.categories::before { background: #e67e22; }
-.admin-card.categories:hover::before { background: #d35400; }
+.admin-card.users::before {
+  background: #3498db;
+}
 
-.admin-card.roles .card-icon { color: #9b59b6; }
-.admin-card.roles::before { background: #9b59b6; }
-.admin-card.roles:hover::before { background: #8e44ad; }
+.admin-card.users:hover::before {
+  background: #2980b9;
+}
 
-.admin-card.feedback .card-icon { color: #1abc9c; }
-.admin-card.feedback::before { background: #1abc9c; }
-.admin-card.feedback:hover::before { background: #16a085; }
+.admin-card.categories .card-icon {
+  color: #e67e22;
+}
 
-.admin-card.logs .card-icon { color: #eeeb22; }
-.admin-card.logs::before { background: #eeeb22; }
-.admin-card.logs:hover::before { background: #cac71e; }
+.admin-card.categories::before {
+  background: #e67e22;
+}
+
+.admin-card.categories:hover::before {
+  background: #d35400;
+}
+
+.admin-card.roles .card-icon {
+  color: #9b59b6;
+}
+
+.admin-card.roles::before {
+  background: #9b59b6;
+}
+
+.admin-card.roles:hover::before {
+  background: #8e44ad;
+}
+
+.admin-card.feedback .card-icon {
+  color: #1abc9c;
+}
+
+.admin-card.feedback::before {
+  background: #1abc9c;
+}
+
+.admin-card.feedback:hover::before {
+  background: #16a085;
+}
+
+.admin-card.logs .card-icon {
+  color: #eeeb22;
+}
+
+.admin-card.logs::before {
+  background: #eeeb22;
+}
+
+.admin-card.logs:hover::before {
+  background: #cac71e;
+}
 
 /* Плавное появление карточек по очереди */
 @keyframes slideInFade {
@@ -170,6 +210,7 @@
     opacity: 0;
     transform: translateY(30px) scale(0.98);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -180,11 +221,29 @@
   animation: slideInFade 0.7s ease forwards;
 }
 
-.admin-card:nth-child(1) { animation-delay: 0.1s; }
-.admin-card:nth-child(2) { animation-delay: 0.2s; }
-.admin-card:nth-child(3) { animation-delay: 0.3s; }
-.admin-card:nth-child(4) { animation-delay: 0.4s; }
-.admin-card:nth-child(5) { animation-delay: 0.5s; }
+.admin-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.admin-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.admin-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.admin-card:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.admin-card:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.admin-card:nth-child(6) {
+  animation-delay: 0.6s;
+}
 
 /* Дополнительный эффект: легкая волна при наведении */
 .admin-card::after {

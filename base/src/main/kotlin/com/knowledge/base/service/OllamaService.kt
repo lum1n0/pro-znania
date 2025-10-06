@@ -207,49 +207,51 @@ class OllamaService(
 
     // Форматирование ответов (Markdown), превью — через универсальный санитайзер
     private fun formatDirectMatches(list: List<Article>): String {
-        val unique = list.distinctBy { it.id }
-        return if (unique.size == 1) {
-            val art = unique.first()
-            val url = "http://localhost:4200/article/${art.id}"
-            val preview = quillParserUtil.sanitizePreviewAnyFormat(art.description)
-            listOf(
-                "Нашёл статью",
-                "[${art.title}]($url)",
-                preview
-            ).filter { it.isNotBlank() }.joinToString("\n")
-        } else {
-            val items = unique.joinToString("\n") { art ->
-                val url = "http://localhost:4200/article/${art.id}"
-                "- [${art.title}]($url)"
-            }
-            listOf("Я нашёл несколько релевантных статей", items).joinToString("\n")
-        }
-    }
-
-    private fun formatSingleArticleResponse(doc: Document): String {
-        val articleId = (doc.metadata["articleId"] as? Number)?.toLong() ?: 0L
-        val title = doc.metadata["title"] as? String ?: "Без названия"
-        val url = "http://localhost:4200/article/$articleId"
-        // ВАЖНО: doc.content — это уже очищенный текст при индексации, но на всякий случай прогоняем через санитайзер
-        val preview = quillParserUtil.sanitizePreviewAnyFormat(doc.content)
-        return listOf(
+    val unique = list.distinctBy { it.id }
+    return if (unique.size == 1) {
+        val art = unique.first()
+        // Используем относительный путь
+        val url = "/article/${art.id}"
+        val preview = quillParserUtil.sanitizePreviewAnyFormat(art.description)
+        listOf(
             "Нашёл статью",
-            "[$title]($url)",
+            "[${art.title}]($url)",
             preview
         ).filter { it.isNotBlank() }.joinToString("\n")
-    }
-
-    private fun formatMultipleArticlesResponse(documents: List<Document>): String {
-        val unique = documents
-            .filter { (it.metadata["articleId"] as? Number)?.toLong() != null }
-            .distinctBy { (it.metadata["articleId"] as Number).toLong() }
-
-        val items = unique.joinToString("\n") { doc ->
-            val articleId = (doc.metadata["articleId"] as Number).toLong()
-            val title = doc.metadata["title"] as? String ?: "Без названия"
-            val url = "http://localhost:4200/article/$articleId"
-            "- [$title]($url)"
+    } else {
+        val items = unique.joinToString("\n") { art ->
+            val url = "/article/${art.id}"
+            "- [${art.title}]($url)"
         }
-        return listOf("Я нашёл несколько релевантных статей", "-",items).joinToString("\n")
+        listOf("Я нашёл несколько релевантных статей", items).joinToString("\n")
     }
+}
+
+private fun formatSingleArticleResponse(doc: Document): String {
+    val articleId = (doc.metadata["articleId"] as? Number)?.toLong() ?: 0L
+    val title = doc.metadata["title"] as? String ?: "Без названия"
+    // Используем относительный путь
+    val url = "/article/$articleId"
+    val preview = quillParserUtil.sanitizePreviewAnyFormat(doc.content)
+    return listOf(
+        "Нашёл статью",
+        "[$title]($url)",
+        preview
+    ).filter { it.isNotBlank() }.joinToString("\n")
+}
+
+private fun formatMultipleArticlesResponse(documents: List<Document>): String {
+    val unique = documents
+        .filter { (it.metadata["articleId"] as? Number)?.toLong() != null }
+        .distinctBy { (it.metadata["articleId"] as Number).toLong() }
+
+    val items = unique.joinToString("\n") { doc ->
+        val articleId = (doc.metadata["articleId"] as Number).toLong()
+        val title = doc.metadata["title"] as? String ?: "Без названия"
+        // Используем относительный путь
+        val url = "/article/$articleId"
+        "- [$title]($url)"
+    }
+    return listOf("Я нашёл несколько релевантных статей", "-",items).joinToString("\n")
+}
 }

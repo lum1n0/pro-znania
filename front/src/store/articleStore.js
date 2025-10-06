@@ -570,3 +570,34 @@ fetchArticleVersionAuthor: async (articleId, version) => {
 
   clearError: () => set({ error: null }),
 }));
+
+
+export async function createArticleSmart(payload, role) {
+  const fd = payload; // FormData
+  if (role === 'WRITER') {
+    return apiClient.post('/api/moderation/submit/create', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+  if (role === 'MODERATOR' || role === 'ADMIN') {
+    return apiClient.post('/api/articles', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+  throw new Error('Недостаточно прав');
+}
+
+export async function updateArticleSmart(articleId, payload, role) {
+  const fd = payload; // FormData
+  if (role === 'WRITER') {
+    return apiClient.post(`/api/moderation/submit/update/${articleId}`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+  if (role === 'MODERATOR' || role === 'ADMIN') {
+    return apiClient.put(`/api/articles/${articleId}`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+  throw new Error('Недостаточно прав');
+}

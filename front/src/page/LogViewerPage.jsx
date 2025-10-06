@@ -198,11 +198,12 @@ const LogViewerPage = () => {
 
       console.log('Отправляемые параметры:', Object.fromEntries(params)); // Для отладки
 
-      const response = await fetch(`http://localhost:3001/api/logs?${params.toString()}`, {
-        headers: {
-          'x-api-key': 'SECRET_KEY_123',
-        },
-      });
+// В функции fetchLogs замените хардкодный URL:
+const response = await fetch(`/logger/api/logs?${params.toString()}`, {
+  headers: {
+    'x-api-key': 'SECRET_KEY_123',
+  },
+});
 
       if (!response.ok) throw new Error('Ошибка загрузки логов');
 

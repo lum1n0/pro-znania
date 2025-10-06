@@ -61,8 +61,14 @@ const Header = () => {
     navigate('/admin');
   };
 
+  // Новое: переход в «Мои работы»
+  const handleMyWork = () => {
+    navigate('/my/work');
+  };
+
   const isAdmin = isAuthenticated && hasRole('ADMIN');
   const isWriter = isAuthenticated && hasRole('WRITER');
+  const isModerator = isAuthenticated && hasRole('MODERATOR');
 
   return (
     <header className="header">
@@ -74,7 +80,6 @@ const Header = () => {
             </button>
 
             <Link to="/" className="logo">
-
               <img
                 src={theme === 'dark' ? "/Dark_logo.svg" : "/main_logo.svg"}
                 alt="Logo"
@@ -116,6 +121,16 @@ const Header = () => {
               </button>
             ) : (
               <div className="auth-actions">
+                {(isAdmin || isWriter || isModerator) && (
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleMyWork}
+                    style={{ marginRight: '10px' }}
+                  >
+                    Мои работы
+                  </button>
+                )}
+
                 {(isAdmin || isWriter) && (
                   <button
                     className="btn btn-primary"
@@ -126,7 +141,7 @@ const Header = () => {
                   </button>
                 )}
 
-                {isAdmin && (
+                {(isAdmin || isModerator) && (
                   <button
                     className="btn btn-primary"
                     onClick={handleAdminPanel}
@@ -135,16 +150,6 @@ const Header = () => {
                     Админ панель
                   </button>
                 )}
-{/* 
-                {isWriter && !isAdmin && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleAdminPanel}
-                    style={{ marginRight: '10px' }}
-                  >
-                    Панель редактора
-                  </button>
-                )} */}
 
                 <button
                   className="btn"

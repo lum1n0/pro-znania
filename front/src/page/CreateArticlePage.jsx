@@ -1,14 +1,16 @@
 // src/pages/CreateArticlePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useArticleStore } from '../store/articleStore';
+// import { useArticleStore } from '../store/articleStore'; // не нужен, логика уходит на apiClient
 import { useAuthStore } from '../store/authStore';
 import { writerPermissionsAPI, categoryAPI } from '../api/apiServese';
+import { ApiClient as apiClient } from '../api/apiClient';
 import CustomRichEditor from '../component/CustomRichEditor';
+import { showSuccess, showError } from '../utils/toastUtils';
 import * as Yup from 'yup';
 import { logAction } from '../api/logClient';
 import '../style/CreateArticlePage.css';
-import CategorySelectorTree from '../component/CategorySelectorTree'; // Импорт нового компонента
+import CategorySelectorTree from '../component/CategorySelectorTree';
 
 const deltaToHtml = (delta) => {
   if (typeof delta === 'object' && delta.ops) {
@@ -31,22 +33,26 @@ const htmlToDelta = (html) => {
 const CreateArticlePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { createArticle } = useArticleStore();
   const { user } = useAuthStore();
-  // Получаем categoryId из URL-параметров
+
+  // categoryId из URL-параметров
   const urlParams = new URLSearchParams(location.search);
   const initialCategoryId = urlParams.get('categoryId');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    categoryId: initialCategoryId || '', // Инициализируем categoryId из URL
+    categoryId: initialCategoryId || '',
   });
+
   const [files, setFiles] = useState([]);
   const [videoFile, setVideoFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [isUploading, setIsUploading] = useState(false);
+
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
+
   const validationSchema = Yup.object({
     title: Yup.string().required('Заголовок обязателен'),
     description: Yup.string()
@@ -58,57 +64,55 @@ const CreateArticlePage = () => {
       }),
     categoryId: Yup.string().required('Выберите категорию'),
   });
-  // Функция для проверки роли пользователя
-  const isWriter = (user) => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes('ROLE_WRITER') || user.roles.includes('WRITER');
-  };
-  const isAdmin = (user) => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes('ADMIN') || user.roles.includes('ROLE_ADMIN');
-  };
-  // Функция для загрузки категорий в зависимости от роли пользователя
+
+  // Роли
+  const isWriter = (u) => u?.roles?.includes('ROLE_WRITER') || u?.roles?.includes('WRITER');
+  const isAdmin = (u) => u?.roles?.includes('ROLE_ADMIN') || u?.roles?.includes('ADMIN');
+  const isModerator = (u) => u?.roles?.includes('ROLE_MODERATOR') || u?.roles?.includes('MODERATOR');
+
+  // Подхват пресета из навигации или sessionStorage
+  useEffect(() => {
+    let preset = location.state?.preset;
+    if (!preset) {
+      try {
+        const raw = sessionStorage.getItem('editorPreset');
+        if (raw) preset = JSON.parse(raw);
+      } catch {
+        // ignore
+      }
+    }
+    if (preset) {
+      setFormData((prev) => ({
+        ...prev,
+        title: preset.title ?? prev.title,
+        description: preset.description ?? prev.description,
+        categoryId: preset.categoryId ?? prev.categoryId ?? initialCategoryId ?? '',
+      }));
+      try { sessionStorage.removeItem('editorPreset'); } catch {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Загрузка категорий по роли
   const loadCategories = async () => {
     setIsLoadingCategories(true);
     setAvailableCategories([]);
     try {
-      console.log('Текущий пользователь:', user);
-      console.log('Роли пользователя:', user?.roles);
-      console.log('Пользователь WRITER:', isWriter(user));
-      console.log('Пользователь ADMIN:', isAdmin(user));
       if (isWriter(user)) {
-        // Для писателя загружаем только доступные категории через новый эндпоинт
-        console.log('Загрузка доступных категорий для WRITER через /api/writer-permissions/me/categories-editable');
         const response = await writerPermissionsAPI.getEditableCategories();
-        console.log('Ответ от API для WRITER:', response);
-        console.log('Данные категорий для WRITER:', response.data);
         const categories = Array.isArray(response.data) ? response.data : [];
-        console.log('Финальные категории для WRITER:', categories);
         setAvailableCategories(categories);
-      } else if (isAdmin(user)) {
-        // Для администратора загружаем все категории
-        console.log('Загрузка всех категорий для ADMIN');
+      } else if (isAdmin(user) || isModerator(user)) {
         const response = await categoryAPI.getAllCategories(0, 1000);
-        console.log('Ответ от API для ADMIN:', response);
         const categories = response.data.content || response.data || [];
-        console.log('Финальные категории для ADMIN:', categories);
         setAvailableCategories(categories);
       } else {
-        // Для других ролей загружаем категории по пользователю
-        console.log('Загрузка категорий для обычного пользователя');
         const response = await categoryAPI.getCategoriesForUser(user.id, 0, 100);
         const categories = response.data.content || response.data || [];
-        console.log('Финальные категории для USER:', categories);
         setAvailableCategories(categories);
       }
     } catch (error) {
       console.error('Ошибка при загрузке категорий:', error);
-      console.error('Детали ошибки:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data
-      });
       setErrors({ general: 'Не удалось загрузить категории' });
       logAction('ERROR', 'CATEGORY_LOAD_FAIL', 'Ошибка при загрузке категорий', {
         userId: user?.id,
@@ -119,39 +123,63 @@ const CreateArticlePage = () => {
       setIsLoadingCategories(false);
     }
   };
+
   useEffect(() => {
     if (user) {
       loadCategories();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Сабмит с разделением по ролям
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+
     try {
       await validationSchema.validate(formData, { abortEarly: false });
-      const articleFormData = new FormData();
-      articleFormData.append('title', formData.title);
+
+      const fd = new FormData();
+      fd.append('title', formData.title);
       const descriptionDelta = JSON.stringify(htmlToDelta(formData.description));
-      articleFormData.append('description', descriptionDelta);
-      articleFormData.append('categoryId', formData.categoryId);
-      files.forEach(file => articleFormData.append('files', file));
-      if (videoFile) {
-        articleFormData.append('videoFile', videoFile);
-      }
+      fd.append('description', descriptionDelta);
+      fd.append('categoryId', formData.categoryId);
+      files.forEach(file => fd.append('files', file));
+      if (videoFile) fd.append('videoFile', videoFile);
+
       setIsUploading(true);
-      const article = await createArticle(articleFormData);
-      if (article) {
-        logAction('INFO', 'ARTICLE_CREATE', 'Статья успешно создана', {
-          articleId: article.id,
-          title: article.title,
+
+      if (isWriter(user)) {
+        // WRITER — заявка на модерацию
+        await apiClient.post('/api/moderation/submit/create', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        logAction('INFO', 'PROPOSAL_CREATE', 'Заявка отправлена на модерацию', {
+          title: formData.title,
           categoryId: formData.categoryId,
           fileCount: files.length,
           hasVideo: !!videoFile,
         });
-        navigate(`/article/${article.id}`);
+        showSuccess('Заявка отправлена на модерацию');
+        navigate('/my/work');
+      } else if (isAdmin(user) || isModerator(user)) {
+        // MODERATOR/ADMIN — прямая публикация
+        const { data } = await apiClient.post('/api/articles', fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        logAction('INFO', 'ARTICLE_CREATE', 'Статья опубликована', {
+          articleId: data?.id,
+          title: data?.title,
+          categoryId: formData.categoryId,
+          fileCount: files.length,
+          hasVideo: !!videoFile,
+        });
+        showSuccess('Статья опубликована');
+        if (data?.id) navigate(`/article/${data.id}`);
+      } else {
+        showError('Недостаточно прав');
       }
     } catch (validationError) {
-      setIsUploading(false);
       if (validationError.inner) {
         const newErrors = {};
         validationError.inner.forEach((err) => {
@@ -167,16 +195,21 @@ const CreateArticlePage = () => {
           error: validationError.message,
         });
       }
+    } finally {
+      setIsUploading(false);
     }
   };
+
   const handleDescriptionChange = (value) => {
     setFormData((prev) => ({ ...prev, description: value }));
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  // --- Drag & Drop для документов ---
+
+  // DnD документы
   const handleFileDrop = (e) => {
     e.preventDefault();
     const droppedFiles = Array.from(e.dataTransfer.files);
@@ -189,26 +222,19 @@ const CreateArticlePage = () => {
   const removeFile = (indexToRemove) => {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
-  // --- Drag & Drop для видео ---
+
+  // DnD видео
   const handleVideoDrop = (e) => {
     e.preventDefault();
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type.startsWith('video/')) {
-      setVideoFile(droppedFile);
-    }
+    if (droppedFile && droppedFile.type.startsWith('video/')) setVideoFile(droppedFile);
   };
   const handleVideoInputChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('video/')) {
-      setVideoFile(file);
-    }
+    if (file && file.type.startsWith('video/')) setVideoFile(file);
   };
-  const removeVideo = () => {
-    setVideoFile(null);
-  };
-  const preventDefault = (e) => {
-    e.preventDefault();
-  };
+  const removeVideo = () => setVideoFile(null);
+
   const addDragOverClass = (e) => {
     e.preventDefault();
     e.currentTarget.classList.add('drag-over');
@@ -216,11 +242,13 @@ const CreateArticlePage = () => {
   const removeDragOverClass = (e) => {
     e.currentTarget.classList.remove('drag-over');
   };
+
   return (
     <div className="create-article-container">
       <div className="page-header">
         <h2>Создать статью</h2>
       </div>
+
       <form onSubmit={handleSubmit} className="article-form" noValidate>
         <div className="form-group">
           <label htmlFor="title" className="form-label">Заголовок</label>
@@ -235,6 +263,7 @@ const CreateArticlePage = () => {
           />
           {errors.title && <p className="error">{errors.title}</p>}
         </div>
+
         <div className="form-group">
           <label className="form-label">Описание</label>
           <CustomRichEditor
@@ -245,7 +274,8 @@ const CreateArticlePage = () => {
           />
           {errors.description && <div className="error">{errors.description}</div>}
         </div>
-        {/* === Обновленный блок выбора категории === */}
+
+        {/* Категория */}
         <div className="form-group">
           <label className="form-label">Категория</label>
           {isLoadingCategories ? (
@@ -253,14 +283,11 @@ const CreateArticlePage = () => {
           ) : availableCategories.length === 0 ? (
             <div className="category-selector">
               <p className="info-message">
-                {isWriter(user)
-                  ? 'У вас нет доступных категорий для создания статей'
-                  : 'Нет доступных категорий'}
+                {isWriter(user) ? 'У вас нет доступных категорий для создания статей' : 'Нет доступных категорий'}
               </p>
             </div>
           ) : (
             <div className="category-selector">
-              {/* Используем импортированный компонент */}
               <CategorySelectorTree
                 categories={availableCategories}
                 selectedCategoryId={formData.categoryId}
@@ -271,8 +298,8 @@ const CreateArticlePage = () => {
             </div>
           )}
         </div>
-        {/* === Конец обновленного блока === */}
-        {/* Dropzone для видео */}
+
+        {/* Видео */}
         <div className="form-group">
           <label className="form-label">Видеофайл (необязательно)</label>
           <div
@@ -288,7 +315,6 @@ const CreateArticlePage = () => {
             <p>Перетащите видео или кликните, чтобы выбрать</p>
             <input type="file" accept="video/*" onChange={handleVideoInputChange} className="dropzone-input" disabled={isUploading} />
           </div>
-          {/* Превью видео — отображается ПОСЛЕ dropzone */}
           {videoFile && (
             <div className="video-preview">
               <h4 className="preview-title">Выбранное видео:</h4>
@@ -302,7 +328,8 @@ const CreateArticlePage = () => {
             </div>
           )}
         </div>
-        {/* Dropzone для файлов */}
+
+        {/* Файлы */}
         <div className="form-group">
           <label className="form-label">Файлы-документы (необязательно)</label>
           <div
@@ -318,7 +345,6 @@ const CreateArticlePage = () => {
             <p>Перетащите файлы сюда или кликните, чтобы выбрать</p>
             <input type="file" multiple onChange={handleFileInputChange} className="dropzone-input" disabled={isUploading} />
           </div>
-          {/* Превью файлов — отображается ПОСЛЕ dropzone */}
           {files.length > 0 && (
             <div className="files-preview">
               <h4 className="preview-title">Выбранные файлы:</h4>
@@ -334,14 +360,16 @@ const CreateArticlePage = () => {
             </div>
           )}
         </div>
+
         {errors.general && <p className="error general-error">{errors.general}</p>}
+
         <div className="form-actions">
           <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary" disabled={isUploading}>
             Отмена
           </button>
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
+          <button
+            type="submit"
+            className="btn btn-primary"
             disabled={isUploading || isLoadingCategories || availableCategories.length === 0}
           >
             {isUploading ? 'Загрузка...' : 'Создать статью'}
@@ -351,4 +379,5 @@ const CreateArticlePage = () => {
     </div>
   );
 };
+
 export default CreateArticlePage;

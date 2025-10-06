@@ -208,3 +208,31 @@ export const logAPI = {
     }
   },
 };
+
+// 🔹 Moderation & Submissions API
+export const moderationAPI = {
+  // Подача заявок WRITER
+  submitCreate: (formData) => ApiClient.post('/api/moderation/submit/create', formData),
+  submitUpdate: (articleId, formData) => ApiClient.post(`/api/moderation/submit/update/${articleId}`, formData),
+
+  // Очередь модерации (ADMIN/MODERATOR)
+  listPending: () => ApiClient.get('/api/moderation/pending'),
+  getProposal: (id) => ApiClient.get(`/api/moderation/proposals/${id}`),
+
+  approve: (id, comment) => {
+    const fd = new FormData();
+    if (comment) fd.append('comment', comment);
+    return ApiClient.post(`/api/moderation/proposals/${id}/approve`, fd);
+  },
+
+  reject: (id, reason) => {
+    const fd = new FormData();
+    fd.append('reason', reason);
+    return ApiClient.post(`/api/moderation/proposals/${id}/reject`, fd);
+  },
+};
+
+// 🔹 My Work API
+export const myWorkAPI = {
+  getMyWork: () => ApiClient.get('/api/my/work'),
+};

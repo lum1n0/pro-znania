@@ -18,6 +18,8 @@ import AccessRoleManagementPage from './page/AccessRoleManagementPage';
 import EditArticlePage from './page/EditArticlePage';
 import FeedbackAdminPage from './page/FeedbackAdminPage';
 import LogViewerPage from './page/LogViewerPage';
+import MyWorkPage from './page/MyWorkPage';
+import ModerationPage from './page/ModerationPage';
 import AllCategoriesPage from './page/AllCategoryPage';
 import { ToastContainer } from 'react-toastify';
 import CategoryPage from './page/CategoryPage';
@@ -96,6 +98,9 @@ function App() {
                 <Route path="/admin/access-roles" element={<AccessRoleManagementPage />} />
                 <Route path="/admin/feedback" element={<FeedbackAdminPage />} />
                 <Route path="/admin/logs" element={<LogViewerPage />} />
+                <Route path="/my/work" element={<MyWorkPage />} />
+                <Route path="/moderation" element={<ModerationPage />} />
+                
                 
 
                 

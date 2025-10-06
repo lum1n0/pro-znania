@@ -1,18 +1,17 @@
 // src/pages/EditArticlePage.jsx
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { useCategoryStore } from '../store/categoryStore';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useArticleStore } from '../store/articleStore';
 import { useAuthStore } from '../store/authStore';
-import { writerPermissionsAPI, categoryAPI } from '../api/apiServese'; // Добавлены импорты API
+import { writerPermissionsAPI, categoryAPI } from '../api/apiServese';
+import { showSuccess, showError } from '../utils/toastUtils';
+import { ApiClient as apiClient } from '../api/apiClient';
 import * as Yup from 'yup';
 import CustomRichEditor from '../component/CustomRichEditor';
 import { logAction } from '../api/logClient';
 import '../style/CreateArticlePage.css';
-import right from "../assets/right.svg"
-import down from "../assets/down.svg"
-
-
+import right from "../assets/right.svg";
+import down from "../assets/down.svg";
 
 const deltaToHtml = (delta) => {
   if (typeof delta === 'object' && delta.ops) {
@@ -32,27 +31,20 @@ const htmlToDelta = (html) => {
   return { ops: [{ insert: html }] };
 };
 
-// Вспомогательный компонент для отображения дерева категорий
-// Вставьте этот компонент вместо старого CategorySelectorTree
+// Встроенный простой селектор дерева категорий
 const CategorySelectorTree = ({ categories, selectedCategoryId, onSelect }) => {
   const [expandedNodes, setExpandedNodes] = useState(new Set());
 
-  // Функция для построения дерева категорий
   const buildTree = (categoriesList) => {
     const map = {};
     const roots = [];
-    categoriesList.forEach(cat => {
-      map[cat.id] = { ...cat, children: [] };
-    });
+    categoriesList.forEach(cat => { map[cat.id] = { ...cat, children: [] }; });
     categoriesList.forEach(cat => {
       const node = map[cat.id];
       if (cat.parentId) {
         const parent = map[cat.parentId];
-        if (parent) {
-          parent.children.push(node);
-        } else {
-          roots.push(node);
-        }
+        if (parent) parent.children.push(node);
+        else roots.push(node);
       } else {
         roots.push(node);
       }
@@ -62,21 +54,17 @@ const CategorySelectorTree = ({ categories, selectedCategoryId, onSelect }) => {
 
   const tree = buildTree(categories);
 
-  // Рекурсивный компонент для отображения узла дерева
   const TreeNode = ({ node, level = 0 }) => {
     const hasChildren = node.children && node.children.length > 0;
     const isSelected = selectedCategoryId === String(node.id);
     const isExpanded = expandedNodes.has(node.id);
     const paddingLeft = `${level * 20 + 10}px`;
 
-    const toggleExpand = () => {
-      const newExpanded = new Set(expandedNodes);
-      if (isExpanded) {
-        newExpanded.delete(node.id);
-      } else {
-        newExpanded.add(node.id);
-      }
-      setExpandedNodes(newExpanded);
+    const toggleExpand = (e) => {
+      e.stopPropagation();
+      const next = new Set(expandedNodes);
+      if (isExpanded) next.delete(node.id); else next.add(node.id);
+      setExpandedNodes(next);
     };
 
     return (
@@ -88,18 +76,16 @@ const CategorySelectorTree = ({ categories, selectedCategoryId, onSelect }) => {
         >
           <span className="category-item-icon" onClick={toggleExpand} style={{ cursor: 'pointer' }}>
             {hasChildren ? (
-              isExpanded ? 
-                <img src={down} alt="Свернуть" style={{ width: 16, height: 16 }} /> : 
-                <img src={right} alt="Развернуть" style={{ width: 16, height: 16 }} />
-            ) : (
-              '📁'
-            )}
+              isExpanded
+                ? <img src={down} alt="Свернуть" style={{ width: 16, height: 16 }} />
+                : <img src={right} alt="Развернуть" style={{ width: 16, height: 16 }} />
+            ) : '📁'}
           </span>
           <span className="category-item-name">{node.description}</span>
         </div>
 
-        {hasChildren && (
-          <div className={`category-children ${isExpanded ? 'expanded' : 'collapsed'}`}>
+        {hasChildren && isExpanded && (
+          <div className="category-children">
             {node.children.map(child => (
               <TreeNode key={child.id} node={child} level={level + 1} />
             ))}
@@ -121,10 +107,9 @@ const CategorySelectorTree = ({ categories, selectedCategoryId, onSelect }) => {
 const EditArticlePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { updateArticle, fetchArticleById } = useArticleStore();
-
-  // НОВОЕ: нужен user для проверки роли
+  const { fetchArticleById } = useArticleStore();
   const { user, userId, userEmail: storeUserEmail, isAuthenticated, checkAuth } = useAuthStore();
 
   const [formData, setFormData] = useState({ title: '', description: '', categoryId: '' });
@@ -135,8 +120,11 @@ const EditArticlePage = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-  const [availableCategories, setAvailableCategories] = useState([]); // Добавлено
-  const [isLoadingCategories, setIsLoadingCategories] = useState(false); // Добавлено
+  const [availableCategories, setAvailableCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+
+  // Флаг, что пресет применён и контент статьи не должен быть перезатёрт загрузкой
+  const presetAppliedRef = useRef(false);
 
   const validationSchema = Yup.object({
     title: Yup.string().required('Заголовок обязателен'),
@@ -150,60 +138,55 @@ const EditArticlePage = () => {
     categoryId: Yup.string().required('Выберите категорию'),
   });
 
-  // Функция для проверки роли пользователя
-  const isWriter = (user) => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes('ROLE_WRITER') || user.roles.includes('WRITER');
-  };
+  // Роли
+  const isWriter = (u) => u?.roles?.includes('ROLE_WRITER') || u?.roles?.includes('WRITER');
+  const isAdmin = (u) => u?.roles?.includes('ROLE_ADMIN') || u?.roles?.includes('ADMIN');
+  const isModerator = (u) => u?.roles?.includes('ROLE_MODERATOR') || u?.roles?.includes('MODERATOR');
 
-  const isAdmin = (user) => {
-    if (!user || !user.roles) return false;
-    return user.roles.includes('ADMIN') || user.roles.includes('ROLE_ADMIN');
-  };
+  // Подхват пресета из навигации или sessionStorage (до загрузки статьи)
+  useEffect(() => {
+    let preset = location.state?.preset;
+    if (!preset) {
+      try {
+        const raw = sessionStorage.getItem('editorPreset');
+        if (raw) preset = JSON.parse(raw);
+      } catch {
+        // ignore
+      }
+    }
+    if (preset) {
+      setFormData(prev => ({
+        ...prev,
+        title: preset.title ?? prev.title,
+        description: preset.description ?? prev.description,
+        categoryId: preset.categoryId ?? prev.categoryId,
+      }));
+      presetAppliedRef.current = true;
+      try { sessionStorage.removeItem('editorPreset'); } catch {}
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Функция для загрузки категорий в зависимости от роли пользователя
+  // Категории по роли
   const loadCategories = async () => {
     setIsLoadingCategories(true);
     setAvailableCategories([]);
     try {
-      console.log('Текущий пользователь:', user);
-      console.log('Роли пользователя:', user?.roles);
-      console.log('Пользователь WRITER:', isWriter(user));
-      console.log('Пользователь ADMIN:', isAdmin(user));
-      
       if (isWriter(user)) {
-        // Для писателя загружаем только доступные категории через новый эндпоинт
-        console.log('Загрузка доступных категорий для WRITER через /api/writer-permissions/me/categories-editable');
         const response = await writerPermissionsAPI.getEditableCategories();
-        console.log('Ответ от API для WRITER:', response);
-        console.log('Данные категорий для WRITER:', response.data);
         const categories = Array.isArray(response.data) ? response.data : [];
-        console.log('Финальные категории для WRITER:', categories);
         setAvailableCategories(categories);
-      } else if (isAdmin(user)) {
-        // Для администратора загружаем все категории
-        console.log('Загрузка всех категорий для ADMIN');
+      } else if (isAdmin(user) || isModerator(user)) {
         const response = await categoryAPI.getAllCategories(0, 1000);
-        console.log('Ответ от API для ADMIN:', response);
         const categories = response.data.content || response.data || [];
-        console.log('Финальные категории для ADMIN:', categories);
         setAvailableCategories(categories);
       } else {
-        // Для других ролей загружаем категории по пользователю
-        console.log('Загрузка категорий для обычного пользователя');
         const response = await categoryAPI.getCategoriesForUser(user.id, 0, 100);
         const categories = response.data.content || response.data || [];
-        console.log('Финальные категории для USER:', categories);
         setAvailableCategories(categories);
       }
     } catch (error) {
       console.error('Ошибка при загрузке категорий:', error);
-      console.error('Детали ошибки:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data
-      });
       setErrors({ general: 'Не удалось загрузить категории' });
       logAction('ERROR', 'CATEGORY_LOAD_FAIL', 'Ошибка при загрузке категорий', {
         userId: user?.id,
@@ -218,21 +201,22 @@ const EditArticlePage = () => {
   useEffect(() => {
     checkAuth();
     if (!isAuthenticated) {
-      const fallbackEmail = 'guest';
       logAction('WARN', 'AUTH_REQUIRED', 'Доступ запрещён: пользователь не авторизован', {
         articleId: id,
         redirect: '/login',
-        userEmail: fallbackEmail,
+        userEmail: 'guest',
       });
       navigate('/login');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkAuth, isAuthenticated, id, navigate]);
 
   useEffect(() => {
     if (user) {
       loadCategories();
     }
-  }, [user]); // Зависимость от user, а не от isAuthenticated
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     if (!id || !isAuthenticated || isLoadingCategories) return;
@@ -244,16 +228,20 @@ const EditArticlePage = () => {
         if (!article) throw new Error('Статья не найдена');
 
         const descriptionHTML = deltaToHtml(article.description);
-
         const categoryId = article.categoryId || (article.categoryDto?.id ? Number(article.categoryDto.id) : '');
 
-        setFormData({
-          title: article.title || '',
-          description: descriptionHTML,
-          categoryId: categoryId ? String(categoryId) : '', // Преобразуем в строку для согласования с CategorySelectorTree
-        });
+        // Метаданные текущего состояния статьи — сохраняем всегда
         setExistingVideo(article.videoPath?.[0] || null);
         setExistingFiles(article.filePath || []);
+
+        // Если пресет уже применён — не перезаписываем title/description/categoryId
+        if (!presetAppliedRef.current) {
+          setFormData({
+            title: article.title || '',
+            description: descriptionHTML,
+            categoryId: categoryId ? String(categoryId) : '',
+          });
+        }
 
         logAction('INFO', 'ARTICLE_LOADED', 'Статья загружена', {
           articleId: id,
@@ -274,59 +262,46 @@ const EditArticlePage = () => {
     };
 
     loadArticle();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, fetchArticleById, isAuthenticated, isLoadingCategories]);
 
-  // --- Drag & Drop для документов ---
+  // DnD документы
   const handleFileDrop = (e) => {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
     const droppedFiles = Array.from(e.dataTransfer.files);
     setFiles(prev => [...prev, ...droppedFiles]);
   };
-
   const handleFileInputChange = (e) => {
     const newFiles = Array.from(e.target.files);
     setFiles(prev => [...prev, ...newFiles]);
   };
-
   const removeFile = (indexToRemove) => {
     setFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // --- Drag & Drop для видео ---
+  // DnD видео
   const handleVideoDrop = (e) => {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type.startsWith('video/')) {
-      setVideoFile(droppedFile);
-    }
+    if (droppedFile && droppedFile.type.startsWith('video/')) setVideoFile(droppedFile);
   };
-
   const handleVideoInputChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('video/')) {
-      setVideoFile(file);
-    }
+    if (file && file.type.startsWith('video/')) setVideoFile(file);
   };
-
-  const removeVideo = () => {
-    setVideoFile(null);
-  };
-
-  const preventDefault = (e) => {
-    e.preventDefault();
-  };
+  const removeVideo = () => setVideoFile(null);
 
   const addDragOverClass = (e) => {
     e.preventDefault();
     e.currentTarget.classList.add('drag-over');
   };
-
   const removeDragOverClass = (e) => {
     e.currentTarget.classList.remove('drag-over');
   };
 
+  // Сабмит с разделением по ролям
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -347,27 +322,43 @@ const EditArticlePage = () => {
     }
 
     try {
-      const articleFormData = new FormData();
-      articleFormData.append('title', formData.title);
+      const fd = new FormData();
+      fd.append('title', formData.title);
       const descriptionDelta = JSON.stringify(htmlToDelta(formData.description));
-      articleFormData.append('description', descriptionDelta);
-      articleFormData.append('categoryId', formData.categoryId); // categoryId уже строка
+      fd.append('description', descriptionDelta);
+      fd.append('categoryId', formData.categoryId);
+      if (videoFile) fd.append('videoFile', videoFile);
+      files.forEach(file => fd.append('files', file));
 
-      if (videoFile) articleFormData.append('videoFile', videoFile);
-      files.forEach(file => articleFormData.append('files', file));
-
-      const result = await updateArticle(id, articleFormData);
-
-      if (result) {
-        logAction('INFO', 'ARTICLE_UPDATE_SUCCESS', 'Статья успешно обновлена', {
-          articleId: id,
-          articleTitle: result.title,
-          userId,
-          userEmail: storeUserEmail || 'guest',
+      if (isWriter(user)) {
+        // WRITER — заявка на модерацию
+        await apiClient.post(`/api/moderation/submit/update/${id}`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
-        navigate(`/article/${result.id}`);
+        logAction('INFO', 'PROPOSAL_UPDATE', 'Обновление отправлено на модерацию', {
+          articleId: id,
+          title: formData.title,
+          categoryId: formData.categoryId,
+          addFiles: files.length,
+          replaceVideo: !!videoFile,
+        });
+        showSuccess('Обновление отправлено на модерацию');
+        navigate('/my/work');
+      } else if (isAdmin(user) || isModerator(user)) {
+        // MODERATOR/ADMIN — обновление и публикация
+        const { data } = await apiClient.put(`/api/articles/${id}`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        logAction('INFO', 'ARTICLE_UPDATE_SUCCESS', 'Статья обновлена и опубликована', {
+          articleId: id,
+          articleTitle: data?.title,
+          addFiles: files.length,
+          replaceVideo: !!videoFile,
+        });
+        showSuccess('Статья обновлена и опубликована');
+        navigate(`/article/${data?.id ?? id}`);
       } else {
-        setErrors({ general: 'Не удалось получить обновлённую статью' });
+        showError('Недостаточно прав');
       }
     } catch (error) {
       logAction('ERROR', 'ARTICLE_UPDATE_FAILED', 'Ошибка при обновлении статьи', {
@@ -428,7 +419,7 @@ const EditArticlePage = () => {
           {errors.description && <div className="error">{errors.description}</div>}
         </div>
 
-        {/* === Обновленный блок выбора категории === */}
+        {/* Категория */}
         <div className="form-group">
           <label className="form-label">Категория</label>
           {isLoadingCategories ? (
@@ -436,9 +427,7 @@ const EditArticlePage = () => {
           ) : availableCategories.length === 0 ? (
             <div className="category-selector">
               <p className="info-message">
-                {isWriter(user)
-                  ? 'У вас нет доступных категорий для создания статей'
-                  : 'Нет доступных категорий'}
+                {isWriter(user) ? 'У вас нет доступных категорий для создания статей' : 'Нет доступных категорий'}
               </p>
             </div>
           ) : (
@@ -452,9 +441,8 @@ const EditArticlePage = () => {
             </div>
           )}
         </div>
-        {/* === Конец обновленного блока === */}
 
-        {/* Dropzone для видео */}
+        {/* Видео */}
         <div className="form-group">
           <label className="form-label">Текущий видеофайл:</label>
           {existingVideo ? (
@@ -462,7 +450,7 @@ const EditArticlePage = () => {
           ) : (
             <p className="no-file">Видео не загружено</p>
           )}
-          
+
           <label className="form-label">Заменить видеофайл:</label>
           <div
             onDragOver={addDragOverClass}
@@ -475,16 +463,15 @@ const EditArticlePage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
             <p>Перетащите видео или кликните, чтобы выбрать</p>
-            <input 
-              type="file" 
-              accept="video/*" 
-              onChange={handleVideoInputChange} 
-              className="dropzone-input" 
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoInputChange}
+              className="dropzone-input"
               disabled={isUploading}
             />
           </div>
 
-          {/* Превью видео — отображается ПОСЛЕ dropzone */}
           {videoFile && (
             <div className="video-preview">
               <h4 className="preview-title">Выбранное видео:</h4>
@@ -499,7 +486,7 @@ const EditArticlePage = () => {
           )}
         </div>
 
-        {/* Dropzone для файлов */}
+        {/* Файлы */}
         <div className="form-group">
           <label className="form-label">Текущие файлы:</label>
           {existingFiles.length > 0 ? (
@@ -513,7 +500,7 @@ const EditArticlePage = () => {
           ) : (
             <p className="no-file">Файлы не загружены</p>
           )}
-          
+
           <label className="form-label">Добавить новые файлы:</label>
           <div
             onDragOver={addDragOverClass}
@@ -526,16 +513,15 @@ const EditArticlePage = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 10h-1m-5-7v7m0 0v7m0-7h7m-7 0H9" />
             </svg>
             <p>Перетащите файлы сюда или кликните, чтобы выбрать</p>
-            <input 
-              type="file" 
-              multiple 
-              onChange={handleFileInputChange} 
-              className="dropzone-input" 
+            <input
+              type="file"
+              multiple
+              onChange={handleFileInputChange}
+              className="dropzone-input"
               disabled={isUploading}
             />
           </div>
 
-          {/* Превью файлов — отображается ПОСЛЕ dropzone */}
           {files.length > 0 && (
             <div className="files-preview">
               <h4 className="preview-title">Выбранные файлы:</h4>

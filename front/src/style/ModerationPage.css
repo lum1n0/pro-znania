@@ -1,0 +1,148 @@
+ .mod-container {
+     padding: 16px 20px;
+ }
+
+ .mod-title {
+     margin: 0 0 16px;
+ }
+
+ .mod-loading {
+     padding: 20px;
+ }
+
+ .mod-list {
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+ }
+
+ .mod-card {
+     border: 1px solid #e4e6eb;
+     border-radius: 10px;
+     background: var(--card-bg, #fff);
+     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+     overflow: hidden;
+ }
+
+ .mod-card.open {
+     border-color: #c7d2fe;
+     box-shadow: 0 2px 6px rgba(79, 70, 229, 0.12);
+ }
+
+ .mod-card-head {
+     display: flex;
+     justify-content: space-between;
+     gap: 16px;
+     padding: 12px 14px;
+     cursor: pointer;
+     background: var(--card-head-bg, #fafafa);
+ }
+
+ .mod-head-left,
+ .mod-head-right {
+     display: flex;
+     gap: 12px;
+     flex-wrap: wrap;
+     align-items: center;
+ }
+
+ .mod-action,
+ .mod-title-line,
+ .mod-category,
+ .mod-date,
+ .mod-author {
+     font-size: 14px;
+     color: #333;
+ }
+
+ .mod-accent {
+     color: #1f2937;
+     font-weight: 600;
+ }
+
+ .mod-badge {
+     font-size: 12px;
+     padding: 2px 8px;
+     border-radius: 999px;
+     border: 1px solid transparent;
+     text-transform: lowercase;
+ }
+
+ .mod-badge.pending {
+     background: #fff7ed;
+     color: #9a3412;
+     border-color: #fdba74;
+ }
+
+ .mod-content {
+     padding: 12px 14px 14px;
+     border-top: 1px dashed #e5e7eb;
+ }
+
+ .mod-meta {
+     display: flex;
+     flex-direction: column;
+     gap: 6px;
+     margin-bottom: 12px;
+ }
+
+ .mod-meta-row b {
+     margin-right: 6px;
+ }
+
+ .mod-list-inline {
+     display: inline-flex;
+     flex-wrap: wrap;
+     gap: 8px;
+     margin: 0;
+     padding: 0;
+     list-style: none;
+ }
+
+ .mod-description {
+     background: var(--desc-bg, #fff);
+     border: 1px solid #eef2f7;
+     border-radius: 8px;
+     padding: 12px;
+     max-height: 360px;
+     overflow: auto;
+ }
+
+ .mod-actions {
+     display: flex;
+     gap: 24px;
+     margin-top: 12px;
+     flex-wrap: wrap;
+ }
+
+ .mod-approve,
+ .mod-reject {
+     display: flex;
+     gap: 8px;
+     align-items: center;
+ }
+
+ .mod-approve input,
+ .mod-reject input {
+     border: 1px solid #e5e7eb;
+     border-radius: 6px;
+     padding: 6px 8px;
+ }
+
+ .btn.btn-approve {
+     background: #10b981;
+     color: #fff;
+ }
+
+ .btn.btn-approve:hover {
+     background: #059669;
+ }
+
+ .btn.btn-reject {
+     background: #ef4444;
+     color: #fff;
+ }
+
+ .btn.btn-reject:hover {
+     background: #dc2626;
+ }

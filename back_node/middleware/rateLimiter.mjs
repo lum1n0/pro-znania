@@ -9,7 +9,7 @@ const logRateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1', // исключить localhost
+  skip: (req) => req.ip === '::1' || req.ip === '127.0.0.1', // исключить local
 });
 
 export default logRateLimiter;
