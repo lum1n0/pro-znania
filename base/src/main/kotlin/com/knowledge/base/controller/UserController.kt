@@ -1,11 +1,17 @@
 package com.knowledge.base.controller
 
+import org.springframework.web.bind.annotation.*
 import com.knowledge.base.dto.UserDto
+import com.knowledge.base.service.RefreshTokenService
 import com.knowledge.base.service.UserService
 import com.knowledge.base.util.JwtUtil
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.AuthenticationManager
@@ -13,16 +19,24 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
-
+import java.time.Duration
 @RestController
 @RequestMapping("/api/user")
 class UserController(
     private val userService: UserService,
     private val authenticationManager: AuthenticationManager,
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: JwtUtil,
+    private val refreshTokenService: RefreshTokenService,
+    @Value("\${app.cookie.secure:false}") private val cookieSecureDefault: Boolean
+
 ) {
     private val logger = LoggerFactory.getLogger(UserController::class.java)
+    private val cookieName = "refreshToken"
 
+    private fun isSecure(request: HttpServletRequest): Boolean {
+        val xfProto = request.getHeader("X-Forwarded-Proto") ?: ""
+        return cookieSecureDefault || request.isSecure || xfProto.equals("https", ignoreCase = true)
+    }
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     fun getAllUserPaginated(pageable: Pageable): ResponseEntity<Page<UserDto>> {
@@ -77,15 +91,35 @@ class UserController(
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody authRequest: com.knowledge.base.dto.AuthRequest): ResponseEntity<Map<String, String>> {
+    fun login(
+        @RequestBody authRequest: com.knowledge.base.dto.AuthRequest,
+        request: HttpServletRequest
+    ): ResponseEntity<Map<String, String>> {
         val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(authRequest.email, authRequest.password)
         )
-        val token = jwtUtil.generateToken(authentication.principal as UserDetails)
+        val userDetails = authentication.principal as UserDetails
+
+        val ua = request.getHeader("User-Agent")
+        val ip = request.remoteAddr
+        val (rawRefresh, savedRt) = refreshTokenService.issueOnLogin(userDetails.username, ua, ip)
+
+        val access = jwtUtil.generateAccessToken(userDetails, savedRt.tokenFamily)
+
+        val setCookie = ResponseCookie.from(cookieName, rawRefresh)
+            .httpOnly(true)
+            .secure(isSecure(request))
+            .sameSite("Lax")
+            .path("/")
+            .maxAge(Duration.ofSeconds(refreshTokenService.refreshTtlSeconds()))
+            .build()
+
         if (logger.isDebugEnabled) {
-            logger.debug("Login JWT head='${token.take(30)}...', len=${token.length}")
+            logger.debug("Login JWT head='${access.take(30)}...', len=${access.length}")
         }
-        return ResponseEntity.ok(mapOf("token" to token))
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, setCookie.toString())
+            .body(mapOf("token" to access))
     }
 
     @PostMapping("/add")

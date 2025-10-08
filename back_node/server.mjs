@@ -13,8 +13,8 @@ app.use(
   cors({
     origin: [
       'http://localhost:4200', 
-      'http://pro-znania-test:4200',
-      'http://pro-znania-test.llc.tagras.corp:4200'
+      'http://pro-znania:4200',
+      'http://pro-znania.llc.tagras.corp:4200'
     ],
     credentials: false,
   })
@@ -44,6 +44,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`✅ Сервис логирования запущен на порту ${PORT}`);
-  console.log(`➡️  Принимает логи с http://localhost:4200, http://pro-znania-test:4200, http://pro-znania-test.llc.tagras.corp:4200`);
+  console.log(`➡️  Принимает логи с http://localhost:4200, http://pro-znania:4200, http://pro-znania.llc.tagras.corp:4200`);
   console.log(`📊 Логи сохраняются в MongoDB (logs_db.logs)`);
 });

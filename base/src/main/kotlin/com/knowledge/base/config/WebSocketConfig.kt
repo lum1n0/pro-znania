@@ -20,8 +20,8 @@ override fun registerStompEndpoints(registry: StompEndpointRegistry) {
     registry.addEndpoint("/chat")
         .setAllowedOriginPatterns(
             "http://localhost:4200",
-            "http://pro-znania-test:4200",
-            "http://pro-znania-test.llc.tagras.corp:4200"
+            "http://pro-znania:4200",
+            "http://pro-znania.llc.tagras.corp:4200"
         )
         .withSockJS()
         .setSessionCookieNeeded(false)

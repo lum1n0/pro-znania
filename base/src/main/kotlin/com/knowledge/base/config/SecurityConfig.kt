@@ -78,6 +78,9 @@ class SecurityConfig(
             .authenticationManager(customAuthenticationManager)
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers("/api/user/login").permitAll()
+                    .requestMatchers("/api/auth/refresh").permitAll()
+                    .requestMatchers("/api/auth/logout").permitAll()
 
                     // Новые правила для версий статей:
                     .requestMatchers(HttpMethod.GET, "/api/articles/*/versions/*/author").permitAll()
@@ -192,8 +195,8 @@ class SecurityConfig(
         val configuration = CorsConfiguration()
  configuration.allowedOrigins = listOf(
         "http://localhost:4200",
-        "http://pro-znania-test:4200", 
-        "http://pro-znania-test.llc.tagras.corp:4200",
+        "http://pro-znania:4200", 
+        "http://pro-znania.llc.tagras.corp:4200",
         "http://10.15.22.141:3000",
         "http://10.221.107.83:4200",
         "http://172.20.10.3:4200"

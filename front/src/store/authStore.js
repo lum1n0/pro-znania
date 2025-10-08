@@ -17,6 +17,79 @@ const isTokenExpired = (token) => {
   }
 };
 
+const getTokenPayload = (token) => {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch {
+    return null;
+  }
+};
+
+const getTokenExpMs = (token) => {
+  const payload = getTokenPayload(token);
+  return payload?.exp ? payload.exp * 1000 : 0;
+};
+
+const getTokenIatMs = (token) => {
+  const payload = getTokenPayload(token);
+  return payload?.iat ? payload.iat * 1000 : 0;
+};
+
+// Глобальные флаги/таймеры на модуль
+let refreshTimer = null;
+let refreshInProgress = false;
+
+// Динамическое планирование тихого refresh
+// - опережение = min(10% от TTL, 30s), но не меньше 2s
+// - при очень малом TTL (например, 6s) рефреш ≈ за 0.6s до exp, без бесконечного цикла
+const scheduleRefresh = (set) => {
+  const token = Cookies.get('authToken');
+  if (!token) return;
+
+  const expMs = getTokenExpMs(token);
+  const iatMs = getTokenIatMs(token);
+  const now = Date.now();
+
+  if (!expMs || expMs <= now) {
+    if (refreshTimer) clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => silentRefresh(set), 1000);
+    return;
+  }
+
+  const ttlMs = iatMs && expMs ? Math.max(1000, expMs - iatMs) : 15 * 60 * 1000;
+  const lead = Math.max(2000, Math.min(30000, Math.floor(ttlMs * 0.1)));
+  const timeToExp = expMs - now;
+  const delay = timeToExp > lead + 1500 ? (timeToExp - lead) : Math.max(1000, Math.floor(timeToExp * 0.8));
+
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => silentRefresh(set), delay);
+};
+
+// Тихий refresh с защитой от параллельных вызовов и перепланированием
+const silentRefresh = async (set) => {
+  if (refreshInProgress) return;
+  refreshInProgress = true;
+  try {
+    const resp = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+    if (!resp.ok) throw new Error('refresh failed');
+    const data = await resp.json();
+    const newToken = data?.token;
+    if (newToken) {
+      Cookies.set('authToken', newToken, { sameSite: 'Lax' });
+      set({ token: newToken, isAuthenticated: true });
+      scheduleRefresh(set);
+    } else {
+      Cookies.remove('authToken');
+      set({ token: null, isAuthenticated: false });
+    }
+  } catch {
+    Cookies.remove('authToken');
+    set({ token: null, isAuthenticated: false });
+  } finally {
+    refreshInProgress = false;
+  }
+};
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -48,6 +121,8 @@ export const useAuthStore = create(
                 set({ error: 'Не удалось получить ID пользователя' });
               }
             }
+
+            scheduleRefresh(set);
           } catch (err) {
             console.error('Ошибка при проверке токена:', err);
             get().logout();
@@ -55,7 +130,13 @@ export const useAuthStore = create(
             set({ isAuthChecked: true }); // ✅ Проверка завершена
           }
         } else {
-          set({ isAuthChecked: true }); // ✅ Нет токена — всё равно проверка прошла
+          try {
+            await silentRefresh(set);
+          } catch {
+            // ignore
+          } finally {
+            set({ isAuthChecked: true }); // ✅ Нет токена — всё равно проверка прошла
+          }
         }
       },
 
@@ -145,6 +226,8 @@ export const useAuthStore = create(
             error: null,
           });
 
+          scheduleRefresh(set);
+
           return true;
         } catch (error) {
           set({
@@ -155,9 +238,12 @@ export const useAuthStore = create(
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
         Cookies.remove('authToken');
         useChatStore.getState().clearChat();
+        if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+        refreshInProgress = false;
         set({
           user: null,
           userId: null,

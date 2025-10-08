@@ -131,7 +131,7 @@ const Header = () => {
                   </button>
                 )}
 
-                {(isAdmin || isWriter) && (
+                {(isAdmin || isWriter || isModerator) && (
                   <button
                     className="btn btn-primary"
                     onClick={handleCreatePost}

@@ -46,9 +46,7 @@ const ArticlePage = () => {
     fetchArticleVersion,
     selectedVersion,
     restoreArticleVersion,
-    // --- Добавляем метод удаления версии из store ---
     deleteArticleVersion,
-    // --- Конец добавления ---
   } = useArticleStore();
   const { user, isAuthenticated, hasRole } = useAuthStore();
   const userEmail = user?.email || user?.sub || 'guest';
@@ -56,26 +54,24 @@ const ArticlePage = () => {
   const [feedback, setFeedback] = useState({ title: '', description: '' });
   const [videoUrl, setVideoUrl] = useState(null);
   const [error, setError] = useState(null);
-  // + новое состояние для автора выбранной версии
   const [versionAuthor, setVersionAuthor] = useState(null);
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [canEditArticle, setCanEditArticle] = useState(false);
 
-  // Состояния для версий
+  // Версии
   const [showVersionDropdown, setShowVersionDropdown] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [isViewingVersion, setIsViewingVersion] = useState(false);
 
-  // Ref для кнопки дропдауна версий
+  // Позиционирование дропдауна версий
   const versionButtonRef = useRef(null);
-  // Ref для позиции дропдауна
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 250 });
 
   useEffect(() => {
@@ -98,15 +94,14 @@ const ArticlePage = () => {
     loadVersionAuthor();
   }, [isViewingVersion, selectedVersion, selectedArticle]);
 
-
-  // Проверка прав доступа для WRITER
+  // Проверка прав доступа для WRITER/MODERATOR
   useEffect(() => {
     const checkEditPermission = async () => {
       if (hasRole('ADMIN')) {
         setCanEditArticle(true);
         return;
       }
-      if (hasRole('WRITER') && selectedArticle?.categoryDto?.id) {
+      if ((hasRole('WRITER') || hasRole('MODERATOR')) && selectedArticle?.categoryDto?.id) {
         try {
           const response = await writerPermissionsAPI.canEditArticle(selectedArticle.categoryDto.id);
           setCanEditArticle(response.data === true);
@@ -118,7 +113,7 @@ const ArticlePage = () => {
       }
       setCanEditArticle(false);
     };
-    if (selectedArticle && (hasRole('ADMIN') || hasRole('WRITER'))) {
+    if (selectedArticle && (hasRole('ADMIN') || hasRole('MODERATOR') || hasRole('WRITER'))) {
       checkEditPermission();
     } else {
       setCanEditArticle(false);
@@ -155,10 +150,10 @@ const ArticlePage = () => {
   // Загрузка версий статьи
   useEffect(() => {
     const loadVersions = async () => {
-      if (selectedArticle && (hasRole('ADMIN') || hasRole('WRITER'))) {
+      if (selectedArticle && (hasRole('ADMIN') || hasRole('WRITER') || hasRole('MODERATOR') || hasRole('USER'))) {
         try {
           const versions = await fetchArticleVersions(selectedArticle.id);
-          console.log("Загруженные версии:", versions);
+          console.log('Загруженные версии:', versions);
         } catch (error) {
           console.error('Ошибка загрузки версий:', error);
         }
@@ -169,7 +164,7 @@ const ArticlePage = () => {
     loadVersions();
   }, [selectedArticle, hasRole, fetchArticleVersions, clearArticleVersions]);
 
-  const canEdit = hasRole('ADMIN') || hasRole('WRITER');
+  const canEdit = hasRole('ADMIN') || hasRole('WRITER') || hasRole('MODERATOR');
   const isOwnerOrAdmin = hasRole('ADMIN');
 
   // Загрузка видео
@@ -201,7 +196,6 @@ const ArticlePage = () => {
     };
   }, [selectedArticle, id, userEmail]);
 
-  // Отправка отзыва
   // Отправка отзыва
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
@@ -246,13 +240,11 @@ const ArticlePage = () => {
         userEmail,
       };
 
-      // Готовим заголовки: JSON + Bearer при наличии токена
       const headers = { 'Content-Type': 'application/json' };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      // Прямая отправка через ApiClient, чтобы гарантировать передачу заголовков
       await ApiClient.post('/api/feedback', feedbackData, { headers });
 
       logAction('INFO', 'FEEDBACK_SENT', 'Отзыв по статье отправлен', {
@@ -265,7 +257,6 @@ const ArticlePage = () => {
       setIsFeedbackOpen(false);
       setFeedback({ title: '', description: '' });
     } catch (err) {
-      // Нормализация текста ошибки
       let errorMsg = 'Unknown error';
       if (err.response) {
         const { status, data } = err.response;
@@ -290,10 +281,9 @@ const ArticlePage = () => {
     }
   };
 
-
   // Мягкое удаление/восстановление
   const handleDeleteRestore = async () => {
-    if (!(hasRole('ADMIN') || (hasRole('WRITER') && canEditArticle))) {
+    if (!(hasRole('ADMIN') || ((hasRole('WRITER') || hasRole('MODERATOR')) && canEditArticle))) {
       showError('У вас нет прав на редактирование статьи');
       return;
     }
@@ -313,24 +303,38 @@ const ArticlePage = () => {
         try {
           const result = await softDeleteArticle(id, newIsDelete);
           if (result === true || (typeof result === 'object' && result !== null)) {
-            logAction('INFO', newIsDelete ? 'ARTICLE_DELETED' : 'ARTICLE_RESTORED', `Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`, {
-              articleId: id,
-              articleTitle: title,
-              userEmail,
-            });
+            logAction(
+              'INFO',
+              newIsDelete ? 'ARTICLE_DELETED' : 'ARTICLE_RESTORED',
+              `Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`,
+              {
+                articleId: id,
+                articleTitle: title,
+                userEmail,
+              }
+            );
             showSuccess(`Статья ${newIsDelete ? 'отключена' : 'восстановлена'}`);
           } else {
             throw new Error(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью`);
           }
         } catch (err) {
           console.error(`Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи:`, err);
-          logAction('ERROR', newIsDelete ? 'ARTICLE_DELETE_FAIL' : 'ARTICLE_RESTORE_FAIL', `Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи`, {
-            articleId: id,
-            articleTitle: title,
-            userEmail,
-            error: err.message || String(err)
-          });
-          showError(`Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью: ${err.message || 'Неизвестная ошибка'}`);
+          logAction(
+            'ERROR',
+            newIsDelete ? 'ARTICLE_DELETE_FAIL' : 'ARTICLE_RESTORE_FAIL',
+            `Ошибка при ${newIsDelete ? 'отключении' : 'восстановлении'} статьи`,
+            {
+              articleId: id,
+              articleTitle: title,
+              userEmail,
+              error: err.message || String(err),
+            }
+          );
+          showError(
+            `Не удалось ${newIsDelete ? 'отключить' : 'восстановить'} статью: ${
+              err.message || 'Неизвестная ошибка'
+            }`
+          );
         } finally {
           setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
@@ -360,7 +364,7 @@ const ArticlePage = () => {
       onConfirm: async () => {
         try {
           const success = await hardDeleteArticle(id);
-          console.log("Результат hardDeleteArticle:", success);
+          console.log('Результат hardDeleteArticle:', success);
           if (success === true) {
             logAction('INFO', 'ARTICLE_HARD_DELETED', 'Статья полностью удалена', {
               articleId: id,
@@ -368,7 +372,7 @@ const ArticlePage = () => {
               userEmail,
             });
             showSuccess('Статья удалена навсегда');
-            navigate('/'); // Перенаправление после удаления
+            navigate('/');
           } else {
             throw new Error('Не удалось удалить статью');
           }
@@ -378,7 +382,7 @@ const ArticlePage = () => {
             articleId: id,
             articleTitle: title,
             userEmail,
-            error: err.message || String(err)
+            error: err.message || String(err),
           });
           showError('Не удалось удалить статью: ' + (err.message || 'Неизвестная ошибка'));
         } finally {
@@ -422,22 +426,22 @@ const ArticlePage = () => {
     }
   };
 
-  // --- Функция для просмотра версии ---
+  // Просмотр версии
   const handleViewVersion = async (versionNum) => {
     if (!versionNum || !selectedArticle) return;
     try {
       await fetchArticleVersion(selectedArticle.id, versionNum);
       setIsViewingVersion(true);
       setShowComparison(false);
-      setShowVersionDropdown(false); // Закрываем дропдаун после выбора
+      setShowVersionDropdown(false);
     } catch (error) {
-      console.error("Ошибка загрузки версии для просмотра:", error);
+      console.error('Ошибка загрузки версии для просмотра:', error);
       showError('Ошибка загрузки версии: ' + (error.response?.data?.message || error.message || 'Неизвестная ошибка'));
       setIsViewingVersion(false);
     }
   };
 
-  // --- Функция для удаления версии ---
+  // Удаление версии
   const handleDeleteVersion = async (versionNum) => {
     if (!isOwnerOrAdmin) {
       showError('У вас нет прав на удаление версии статьи');
@@ -458,9 +462,8 @@ const ArticlePage = () => {
       message: `Вы уверены, что хотите удалить версию ${versionNum} статьи "${title}"? Это действие нельзя отменить.`,
       onConfirm: async () => {
         try {
-          // Вызываем метод из store
           const success = await deleteArticleVersion(selectedArticle.id, versionNum);
-          console.log("Результат deleteArticleVersion из store:", success);
+          console.log('Результат deleteArticleVersion из store:', success);
           if (success === true) {
             logAction('INFO', 'ARTICLE_VERSION_DELETED', `Версия ${versionNum} статьи удалена`, {
               articleId: id,
@@ -468,9 +471,7 @@ const ArticlePage = () => {
               userEmail,
             });
             showSuccess(`Версия ${versionNum} удалена`);
-            // Перезагрузим список версий - теперь вызов через store
             await fetchArticleVersions(selectedArticle.id);
-            // Если удаляемая версия была текущей просматриваемой, выйдем из режима просмотра
             if (isViewingVersion && selectedVersion && selectedVersion.version === versionNum) {
               setIsViewingVersion(false);
             }
@@ -483,7 +484,7 @@ const ArticlePage = () => {
             articleId: id,
             articleTitle: title,
             userEmail,
-            error: err.message || String(err)
+            error: err.message || String(err),
           });
           showError('Не удалось удалить версию: ' + (err.message || 'Неизвестная ошибка'));
         } finally {
@@ -493,7 +494,7 @@ const ArticlePage = () => {
     });
   };
 
-  // --- Функция для сравнения текущей версии с просматриваемой ---
+  // Сравнение с текущей
   const handleCompareWithCurrent = async () => {
     if (!isViewingVersion || !selectedVersion || !selectedArticle) {
       showError('Нет версии для сравнения.');
@@ -503,20 +504,19 @@ const ArticlePage = () => {
       await compareArticleVersion(selectedArticle.id, selectedVersion.version);
       setShowComparison(true);
     } catch (error) {
-      console.error("Ошибка сравнения версий:", error);
-      console.error("Ошибка сравнения версий (детали):", error.response);
+      console.error('Ошибка сравнения версий:', error);
+      console.error('Ошибка сравнения версий (детали):', error.response);
       const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка при сравнении версий';
       showError('Ошибка сравнения версий: ' + errorMessage);
     }
   };
 
-  // --- Функция для выхода из режима просмотра версии ---
   const handleExitViewVersion = () => {
     setIsViewingVersion(false);
     setShowComparison(false);
   };
 
-  // --- УЛУЧШЕННАЯ ЛОГИКА ДЛЯ ПОЗИЦИОНИРОВАНИЯ ДРОПДАУНА ---
+  // Позиционирование дропдауна
   const updateDropdownPosition = useCallback(() => {
     if (versionButtonRef.current && showVersionDropdown) {
       const buttonRect = versionButtonRef.current.getBoundingClientRect();
@@ -526,12 +526,11 @@ const ArticlePage = () => {
       setDropdownPosition({
         top: buttonRect.top + scrollTop,
         left: buttonRect.left + scrollLeft,
-        width: buttonRect.width, // Используем ширину кнопки
+        width: buttonRect.width,
       });
     }
   }, [showVersionDropdown]);
 
-  // Обновляем позицию при открытии и при скролле/ресайзе
   useEffect(() => {
     if (showVersionDropdown) {
       updateDropdownPosition();
@@ -550,11 +549,10 @@ const ArticlePage = () => {
     }
   }, [showVersionDropdown, updateDropdownPosition]);
 
-  // --- Обработчик клика вне дропдауна ---
+  // Закрытие дропдауна при клике вне
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showVersionDropdown) {
-        // Проверяем, кликнули ли мы вне дропдауна и вне кнопки
         const dropdownElement = document.getElementById('version-dropdown-menu-portal');
         if (dropdownElement && !dropdownElement.contains(event.target) && !versionButtonRef.current?.contains(event.target)) {
           setShowVersionDropdown(false);
@@ -578,7 +576,6 @@ const ArticlePage = () => {
       const html = deltaToHtml(versionDescription);
       return (
         <div>
-          {/* --- СТИЛИЗОВАННЫЙ БЛОК ИНФОРМАЦИИ О ВЕРСИИ --- */}
           <div className="version-info-bar">
             <strong>Просмотр версии {selectedVersion.version}</strong>
             <div className="version-info-buttons">
@@ -591,38 +588,33 @@ const ArticlePage = () => {
             </div>
           </div>
 
-          {/* --- КОНЕЦ СТИЛИЗОВАННОГО БЛОКА --- */}
           <div
             className="html-content"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
           />
-          {/* >>> ВСТАВИТЬ СЮДА <<< */}
           {isViewingVersion && selectedVersion && (
             <div className="version-meta">
               <div className="version-badge">Версия v{selectedVersion.version}</div>
               <div className="version-author">
-  Автор версии: {versionAuthor?.email || 'неизвестно'}
-</div>
-{versionAuthor?.name && (
-  <div className="version-author-name">
-    Имя: {versionAuthor.name}
-  </div>
-)}
-<div className="version-date">
-  Дата: {
-    // пока сервер не отдаёт createdAt автора заявки — используем editedAt снимка
-    selectedVersion?.editedAt
-      ? new Date(selectedVersion.editedAt).toLocaleString()
-      : 'неизвестно'
-  }
-</div>
+                Автор версии: {versionAuthor?.email || 'неизвестно'}
+              </div>
+              {versionAuthor?.name && (
+                <div className="version-author-name">
+                  Имя: {versionAuthor.name}
+                </div>
+              )}
+              <div className="version-date">
+                Дата: {
+                  selectedVersion?.editedAt
+                    ? new Date(selectedVersion.editedAt).toLocaleString()
+                    : 'неизвестно'
+                }
+              </div>
             </div>
           )}
-
         </div>
       );
     }
-    // УБРАНО: рендеринг модального окна сравнения из renderDescription
     const html = deltaToHtml(description);
     return (
       <div
@@ -632,17 +624,17 @@ const ArticlePage = () => {
     );
   };
 
-  // --- УЛУЧШЕННАЯ Функция для рендеринга сравнения версий ---
+  // Рендер сравнения
   const renderComparison = (compareResult) => {
     if (!compareResult) {
       return <div>Нет данных для сравнения.</div>;
     }
     const allChanges = [];
-    console.log("Обработка descriptionTextDeltas:", compareResult.descriptionTextDeltas);
+    console.log('Обработка descriptionTextDeltas:', compareResult.descriptionTextDeltas);
     if (compareResult.descriptionTextDeltas && Array.isArray(compareResult.descriptionTextDeltas)) {
       compareResult.descriptionTextDeltas.forEach((deltaChange, index) => {
         if (!deltaChange.type) {
-          console.warn("Найдена запись изменения без типа:", deltaChange);
+          console.warn('Найдена запись изменения без типа:', deltaChange);
           return;
         }
         const sourceText = (deltaChange.source || '').trim();
@@ -663,11 +655,11 @@ const ArticlePage = () => {
             allChanges.push({ type: 'ADDED', content: targetText, key: `change-target-${index}` });
           }
         } else {
-          console.warn("Неизвестный тип изменения:", deltaChange.type, deltaChange);
+          console.warn('Неизвестный тип изменения:', deltaChange.type, deltaChange);
         }
       });
     }
-    console.log("Обработка descriptionJsonPatch:", compareResult.descriptionJsonPatch);
+    console.log('Обработка descriptionJsonPatch:', compareResult.descriptionJsonPatch);
     if (allChanges.length === 0 && compareResult.descriptionJsonPatch && Array.isArray(compareResult.descriptionJsonPatch)) {
       compareResult.descriptionJsonPatch.forEach((op, index) => {
         if (op.op === 'add') {
@@ -705,14 +697,9 @@ const ArticlePage = () => {
         });
       }
     }
-    console.log("Все изменения для отображения (allChanges):", allChanges);
+    console.log('Все изменения для отображения (allChanges):', allChanges);
     let versionInfo = `Результаты сравнения (Версия ${compareResult.fromVersion}`;
-    if (compareResult.toVersion !== undefined) {
-      versionInfo += ` → Текущая версия`;
-    } else {
-      versionInfo += ` → Текущая версия`;
-    }
-    versionInfo += ")";
+    versionInfo += ` → Текущая версия)`;
 
     return (
       <div className="comparison-result">
@@ -724,9 +711,12 @@ const ArticlePage = () => {
                 <span className="diff-indicator">
                   {change.type === 'ADDED' ? '+' : change.type === 'REMOVED' ? '-' : ' '}
                 </span>
-                <span className="diff-content" dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(change.content || '')
-                }} />
+                <span
+                  className="diff-content"
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeHtml(change.content || ''),
+                  }}
+                />
               </div>
             ))
           ) : (
@@ -815,11 +805,11 @@ const ArticlePage = () => {
                 : 'Описание'}
             </h2>
             <div className="article-actions-right">
-              {/* УЛУЧШЕННЫЕ Выбор версии для просмотра */}
-              {(hasRole('ADMIN') || hasRole('WRITER')) && articleVersions.length > 0 && (
+              {/* Версии: теперь и для MODERATOR */}
+              {(hasRole('ADMIN') || hasRole('WRITER') || hasRole('MODERATOR')) && articleVersions.length > 0 && (
                 <div className="version-selector-container">
                   <button
-                    ref={versionButtonRef} // Привязываем ref к кнопке
+                    ref={versionButtonRef}
                     className="btn btn-version-dropdown glow-hover"
                     onClick={() => setShowVersionDropdown(!showVersionDropdown)}
                     aria-haspopup="true"
@@ -841,9 +831,6 @@ const ArticlePage = () => {
           </div>
           <div className="content-wrapper">
             {renderDescription(selectedArticle.description)}
-
-
-
           </div>
         </div>
 
@@ -885,22 +872,23 @@ const ArticlePage = () => {
 
         {/* Действия */}
         <div className="article-actions">
-          {!isViewingVersion && (hasRole('ADMIN') || (hasRole('WRITER') && canEditArticle)) && (
-            <>
-              <button
-                className="btn btn-primary glow-hover"
-                onClick={() => navigate(`/article/${id}/edit`)}
-              >
-                ✏️ Редактировать
-              </button>
-              <button
-                className={`btn ${selectedArticle.isDelete ? 'btn-success' : 'btn-cancel'} glow-hover`}
-                onClick={handleDeleteRestore}
-              >
-                {selectedArticle.isDelete ? '♻️ Восстановить' : 'Отключить'}
-              </button>
-            </>
-          )}
+          {!isViewingVersion &&
+            (hasRole('ADMIN') || ((hasRole('WRITER') || hasRole('MODERATOR')) && canEditArticle)) && (
+              <>
+                <button
+                  className="btn btn-primary glow-hover"
+                  onClick={() => navigate(`/article/${id}/edit`)}
+                >
+                  ✏️ Редактировать
+                </button>
+                <button
+                  className={`btn ${selectedArticle.isDelete ? 'btn-success' : 'btn-cancel'} glow-hover`}
+                  onClick={handleDeleteRestore}
+                >
+                  {selectedArticle.isDelete ? '♻️ Восстановить' : 'Отключить'}
+                </button>
+              </>
+            )}
           {!isViewingVersion && isOwnerOrAdmin && (
             <button
               className="btn btn-danger glow-hover"
@@ -922,64 +910,64 @@ const ArticlePage = () => {
       </div>
 
       {/* Портал для дропдауна версий */}
-      {showVersionDropdown && createPortal(
-        <div
-          id="version-dropdown-menu-portal"
-          className="version-dropdown-menu"
-          style={{
-            position: 'absolute',
-            top: `${dropdownPosition.top + 50}px`, // Смещение под кнопку
-            left: `65%`,
-            width: `16.5rem`, // Используем ширину кнопки
-            zIndex: 10000, // Очень высокий z-index
-          }}
-        >
-          <div className="version-list-title">Все версии</div>
-          <ul className="version-list">
-            {articleVersions.map(version => {
-              let dateStr = 'N/A';
-              if (version.editedAt) {
-                try {
-                  const dateObj = new Date(version.editedAt);
-                  if (!isNaN(dateObj)) {
-                    dateStr = dateObj.toLocaleDateString('ru-RU');
+      {showVersionDropdown &&
+        createPortal(
+          <div
+            id="version-dropdown-menu-portal"
+            className="version-dropdown-menu"
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top + 50}px`,
+              left: `65%`,
+              width: `16.5rem`,
+              zIndex: 10000,
+            }}
+          >
+            <div className="version-list-title">Все версии</div>
+            <ul className="version-list">
+              {articleVersions.map((version) => {
+                let dateStr = 'N/A';
+                if (version.editedAt) {
+                  try {
+                    const dateObj = new Date(version.editedAt);
+                    if (!isNaN(dateObj)) {
+                      dateStr = dateObj.toLocaleDateString('ru-RU');
+                    }
+                  } catch (e) {
+                    console.error('Ошибка форматирования даты:', e);
                   }
-                } catch (e) {
-                  console.error("Ошибка форматирования даты:", e);
                 }
-              }
-              return (
-                <li key={`version-${version.version}`} className="version-item">
-                  <div className="version-info" onClick={() => handleViewVersion(version.version)}>
-                    <span className="version-number">Версия {version.version}</span>
-                    <span className="version-date">{dateStr}</span>
-                  </div>
+                return (
+                  <li key={`version-${version.version}`} className="version-item">
+                    <div className="version-info" onClick={() => handleViewVersion(version.version)}>
+                      <span className="version-number">Версия {version.version}</span>
+                      <span className="version-date">{dateStr}</span>
+                    </div>
 
-                  {isOwnerOrAdmin && (
-                    <button
-                      className="btn btn-danger version-delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteVersion(version.version);
-                      }}
-                      title="Удалить версию"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-
-        </div>,
-        document.body // Рендерим в body
-      )}
+                    {isOwnerOrAdmin && (
+                      <button
+                        className="btn btn-danger version-delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteVersion(version.version);
+                        }}
+                        title="Удалить версию"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>,
+          document.body
+        )}
 
       {/* Модальное окно: обратная связь */}
       {isFeedbackOpen && (
         <div className="modal-overlay" onClick={() => setIsFeedbackOpen(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>💬 Написать отзыв</h2>
               <button
@@ -1003,7 +991,7 @@ const ArticlePage = () => {
                 <input
                   type="text"
                   value={feedback.title}
-                  onChange={e => setFeedback({ ...feedback, title: e.target.value })}
+                  onChange={(e) => setFeedback({ ...feedback, title: e.target.value })}
                   required
                   className="form-input"
                   placeholder="Например: Отличная статья!"
@@ -1013,7 +1001,7 @@ const ArticlePage = () => {
                 <label className="form-label">Ваше мнение</label>
                 <textarea
                   value={feedback.description}
-                  onChange={e => setFeedback({ ...feedback, description: e.target.value })}
+                  onChange={(e) => setFeedback({ ...feedback, description: e.target.value })}
                   required
                   rows="4"
                   className="form-textarea"
@@ -1037,10 +1025,10 @@ const ArticlePage = () => {
         </div>
       )}
 
-      {/* Модальное окно сравнения версий (теперь стилизовано и правильно отображается) */}
+      {/* Модальное окно: сравнение версий */}
       {showComparison && compareResult && (
         <div className="modal-overlay" onClick={() => setShowComparison(false)}>
-          <div className="comparison-modal-styled" onClick={e => e.stopPropagation()}>
+          <div className="comparison-modal-styled" onClick={(e) => e.stopPropagation()}>
             <div className="comparison-modal-header-styled">
               <h3>Сравнение версий (Версия {compareResult.fromVersion} vs Текущая)</h3>
               <button
@@ -1058,7 +1046,7 @@ const ArticlePage = () => {
         </div>
       )}
 
-      {/* Модальное окно: подтверждение удаления */}
+      {/* Модалка подтверждения */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
         title={confirmModal.title}

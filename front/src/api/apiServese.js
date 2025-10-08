@@ -194,7 +194,13 @@ export const feedbackAPI = {
 // 🔹 Chat API
 export const chatAPI = {
   deleteSessionMessages: (sessionId) => ApiClient.delete(`/api/chat/session/${sessionId}`),
+  getCurrentSession: () => {
+    const token = document?.cookie?.split('; ').find(x => x.startsWith('authToken='))?.split('=')[1];
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    return ApiClient.get(`/api/chat/session/current`, { headers });
+  },
 };
+
 
 // 🔹 Log API
 export const logAPI = {
