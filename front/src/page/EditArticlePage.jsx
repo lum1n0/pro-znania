@@ -11,6 +11,7 @@ import CustomRichEditor from '../component/CustomRichEditor';
 import { logAction } from '../api/logClient';
 import '../style/CreateArticlePage.css';
 import right from "../assets/right.svg";
+import CategorySelectorTree from '../component/CategorySelectorTree';
 import down from "../assets/down.svg";
 
 const deltaToHtml = (delta) => {
@@ -31,78 +32,6 @@ const htmlToDelta = (html) => {
   return { ops: [{ insert: html }] };
 };
 
-// Встроенный простой селектор дерева категорий
-const CategorySelectorTree = ({ categories, selectedCategoryId, onSelect }) => {
-  const [expandedNodes, setExpandedNodes] = useState(new Set());
-
-  const buildTree = (categoriesList) => {
-    const map = {};
-    const roots = [];
-    categoriesList.forEach(cat => { map[cat.id] = { ...cat, children: [] }; });
-    categoriesList.forEach(cat => {
-      const node = map[cat.id];
-      if (cat.parentId) {
-        const parent = map[cat.parentId];
-        if (parent) parent.children.push(node);
-        else roots.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-    return roots;
-  };
-
-  const tree = buildTree(categories);
-
-  const TreeNode = ({ node, level = 0 }) => {
-    const hasChildren = node.children && node.children.length > 0;
-    const isSelected = selectedCategoryId === String(node.id);
-    const isExpanded = expandedNodes.has(node.id);
-    const paddingLeft = `${level * 20 + 10}px`;
-
-    const toggleExpand = (e) => {
-      e.stopPropagation();
-      const next = new Set(expandedNodes);
-      if (isExpanded) next.delete(node.id); else next.add(node.id);
-      setExpandedNodes(next);
-    };
-
-    return (
-      <div className="category-tree-node">
-        <div
-          className={`category-item-selector ${isSelected ? 'selected' : ''}`}
-          onClick={() => onSelect(String(node.id))}
-          style={{ paddingLeft }}
-        >
-          <span className="category-item-icon" onClick={toggleExpand} style={{ cursor: 'pointer' }}>
-            {hasChildren ? (
-              isExpanded
-                ? <img src={down} alt="Свернуть" style={{ width: 16, height: 16 }} />
-                : <img src={right} alt="Развернуть" style={{ width: 16, height: 16 }} />
-            ) : '📁'}
-          </span>
-          <span className="category-item-name">{node.description}</span>
-        </div>
-
-        {hasChildren && isExpanded && (
-          <div className="category-children">
-            {node.children.map(child => (
-              <TreeNode key={child.id} node={child} level={level + 1} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  return (
-    <div className="category-tree">
-      {tree.map(rootNode => (
-        <TreeNode key={rootNode.id} node={rootNode} />
-      ))}
-    </div>
-  );
-};
 
 const EditArticlePage = () => {
   const { id } = useParams();

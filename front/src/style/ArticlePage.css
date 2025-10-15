@@ -288,6 +288,14 @@
   color: #495057;
 }
 
+.article-views{
+  display: flex;
+  justify-content: end;
+  align-items: end;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
 .btn-danger {
   color: white;
 }

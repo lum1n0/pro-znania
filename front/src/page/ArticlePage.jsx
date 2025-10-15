@@ -1,16 +1,16 @@
+// src/page/ArticlePage.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useArticleStore } from '../store/articleStore';
 import { useAuthStore } from '../store/authStore';
-import { writerPermissionsAPI } from '../api/apiServese';
+import { writerPermissionsAPI, articleAPI, articleVersionsAPI } from '../api/apiServese';
 import { logAction } from '../api/logClient';
 import { ApiClient } from '../api/apiClient';
 import Cookies from 'js-cookie';
 import { showSuccess, showError } from '../utils/toastUtils';
 import ConfirmationModal from '../component/ConfirmationModal';
 import '../style/ArticlePage.css';
-import { articleVersionsAPI } from '../api/apiServese';
 import { sanitizeHtml } from '../utils/sanitizeHtml';
 
 const deltaToHtml = (delta) => {
@@ -74,6 +74,9 @@ const ArticlePage = () => {
   const versionButtonRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 250 });
 
+  // Просмотры
+  const [views, setViews] = useState({ total: null, last24h: null });
+
   useEffect(() => {
     const loadVersionAuthor = async () => {
       if (isViewingVersion && selectedVersion && selectedArticle?.id) {
@@ -95,30 +98,30 @@ const ArticlePage = () => {
   }, [isViewingVersion, selectedVersion, selectedArticle]);
 
   // Проверка прав доступа для WRITER/MODERATOR
-  useEffect(() => {
-    const checkEditPermission = async () => {
-      if (hasRole('ADMIN')) {
-        setCanEditArticle(true);
-        return;
-      }
-      if ((hasRole('WRITER') || hasRole('MODERATOR')) && selectedArticle?.categoryDto?.id) {
-        try {
-          const response = await writerPermissionsAPI.canEditArticle(selectedArticle.categoryDto.id);
-          setCanEditArticle(response.data === true);
-        } catch (error) {
-          console.error('Ошибка проверки прав доступа:', error);
-          setCanEditArticle(false);
-        }
-        return;
-      }
-      setCanEditArticle(false);
-    };
-    if (selectedArticle && (hasRole('ADMIN') || hasRole('MODERATOR') || hasRole('WRITER'))) {
-      checkEditPermission();
-    } else {
-      setCanEditArticle(false);
+useEffect(() => {
+  const checkEditPermission = async () => {
+    if (hasRole('ADMIN') || hasRole('MODERATOR')) {
+      setCanEditArticle(true);
+      return;
     }
-  }, [selectedArticle, user, hasRole]);
+    if (hasRole('WRITER') && selectedArticle?.categoryDto?.id) {
+      try {
+        const response = await writerPermissionsAPI.canEditArticle(selectedArticle.categoryDto.id);
+        setCanEditArticle(response.data === true);
+      } catch (error) {
+        console.error('Ошибка проверки прав доступа:', error);
+        setCanEditArticle(false);
+      }
+      return;
+    }
+    setCanEditArticle(false);
+  };
+  if (selectedArticle && (hasRole('ADMIN') || hasRole('MODERATOR') || hasRole('WRITER'))) {
+    checkEditPermission();
+  } else {
+    setCanEditArticle(false);
+  }
+}, [selectedArticle, user, hasRole]);
 
   // Загрузка статьи
   useEffect(() => {
@@ -164,8 +167,9 @@ const ArticlePage = () => {
     loadVersions();
   }, [selectedArticle, hasRole, fetchArticleVersions, clearArticleVersions]);
 
-  const canEdit = hasRole('ADMIN') || hasRole('WRITER') || hasRole('MODERATOR');
-  const isOwnerOrAdmin = hasRole('ADMIN');
+const canEdit = hasRole('ADMIN') || hasRole('MODERATOR') || (hasRole('WRITER') && canEditArticle);
+const isOwnerOrAdmin = hasRole('ADMIN');
+const canManageVersions = hasRole('ADMIN') || hasRole('MODERATOR') || hasRole('WRITER');
 
   // Загрузка видео
   useEffect(() => {
@@ -195,6 +199,27 @@ const ArticlePage = () => {
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [selectedArticle, id, userEmail]);
+
+  // Загрузка просмотров
+  useEffect(() => {
+    let cancelled = false;
+    const articleId = Number(id);
+    if (!Number.isFinite(articleId)) return;
+    const loadViews = async () => {
+      try {
+        const res = await articleAPI.getViews(articleId);
+        if (cancelled) return;
+        const total = res?.data?.total ?? null;
+        const last24h = res?.data?.last24h ?? null;
+        setViews({ total, last24h });
+      } catch (e) {
+        if (cancelled) return;
+        setViews({ total: null, last24h: null });
+      }
+    };
+    loadViews();
+    return () => { cancelled = true; };
+  }, [id]);
 
   // Отправка отзыва
   const handleFeedbackSubmit = async (e) => {
@@ -769,6 +794,7 @@ const ArticlePage = () => {
               {selectedArticle.category.description}
             </span>
           )}
+         
           {isViewingVersion && selectedVersion && (
             <span className="article-category pulse" style={{ backgroundColor: '#6c757d' }}>
               Просмотр версии {selectedVersion.version}
@@ -831,6 +857,17 @@ const ArticlePage = () => {
           </div>
           <div className="content-wrapper">
             {renderDescription(selectedArticle.description)}
+             {!isViewingVersion && (
+           <span className="article-views" title="Просмотры">
+  Просмотров всего {views.total ?? '—'}
+  {views.last24h != null && (
+    <>
+      <br />
+      за 24ч: {views.last24h}
+    </>
+  )}
+</span>
+          )}
           </div>
         </div>
 
@@ -846,7 +883,7 @@ const ArticlePage = () => {
                 return (
                   <li key={index} className="file-item">
                     <a
-                      href={`${ApiClient.defaults.baseURL}${path}`}
+href={`/files${path.split('/files').pop()}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="file-link"
@@ -872,32 +909,31 @@ const ArticlePage = () => {
 
         {/* Действия */}
         <div className="article-actions">
-          {!isViewingVersion &&
-            (hasRole('ADMIN') || ((hasRole('WRITER') || hasRole('MODERATOR')) && canEditArticle)) && (
-              <>
-                <button
-                  className="btn btn-primary glow-hover"
-                  onClick={() => navigate(`/article/${id}/edit`)}
-                >
-                  ✏️ Редактировать
-                </button>
-                <button
-                  className={`btn ${selectedArticle.isDelete ? 'btn-success' : 'btn-cancel'} glow-hover`}
-                  onClick={handleDeleteRestore}
-                >
-                  {selectedArticle.isDelete ? '♻️ Восстановить' : 'Отключить'}
-                </button>
-              </>
-            )}
-          {!isViewingVersion && isOwnerOrAdmin && (
-            <button
-              className="btn btn-danger glow-hover"
-              onClick={handleHardDelete}
-              title="Полное удаление статьи (нельзя восстановить)"
-            >
-              🗑️ Удалить навсегда
-            </button>
-          )}
+         {!isViewingVersion && canEdit && (
+  <>
+    <button
+      className="btn btn-primary glow-hover"
+      onClick={() => navigate(`/article/${id}/edit`)}
+    >
+      ✏️ Редактировать
+    </button>
+    <button
+      className={`btn ${selectedArticle.isDelete ? 'btn-success' : 'btn-cancel'} glow-hover`}
+      onClick={handleDeleteRestore}
+    >
+      {selectedArticle.isDelete ? '♻️ Восстановить' : 'Отключить'}
+    </button>
+  </>
+)}
+          {!isViewingVersion && hasRole('ADMIN') && ( // Only ADMIN for hard-delete
+  <button
+    className="btn btn-danger glow-hover"
+    onClick={handleHardDelete}
+    title="Полное удаление статьи (нельзя восстановить)"
+  >
+    🗑️ Удалить навсегда
+  </button>
+)}
           {!isViewingVersion && isAuthenticated && (
             <button
               className="btn btn-secondary glow-hover"

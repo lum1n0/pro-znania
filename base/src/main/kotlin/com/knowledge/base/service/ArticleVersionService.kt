@@ -8,6 +8,7 @@ import com.knowledge.base.mapper.ArticleVersionMapper
 import com.knowledge.base.model.Article
 import com.knowledge.base.model.ArticleVersion
 import com.knowledge.base.model.User
+import com.knowledge.base.repository.ArticleProposalRepository
 import com.knowledge.base.repository.ArticleRepository
 import com.knowledge.base.repository.ArticleVersionRepository
 import com.knowledge.base.repository.CategoryRepository
@@ -27,7 +28,9 @@ class ArticleVersionService(
     private val indexingService: IndexingService,
     private val quillParserUtil: QuillParserUtil,
     private val mapper: ArticleVersionMapper,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val articleProposalRepository: ArticleProposalRepository
+
 ) {
 
     @Transactional
@@ -194,6 +197,26 @@ class ArticleVersionService(
     fun getVersionAuthor(articleId: Long, version: Int): VersionAuthorDto {
         val v = articleVersionRepository.findByArticleIdAndVersion(articleId, version)
             .orElseThrow { IllegalArgumentException("Версия $version статьи $articleId не найдена") }
+
+        // Пытаемся извлечь id заявки из changeSummary, например "approved proposal #123"
+        val summary = v.changeSummary.orEmpty()
+        val match = Regex("""proposal\s*#(\d+)""", RegexOption.IGNORE_CASE).find(summary)
+        if (match != null) {
+            val proposalId = match.groupValues[1].toLongOrNull()
+            if (proposalId != null) {
+                val proposalOpt = articleProposalRepository.findById(proposalId)
+                if (proposalOpt.isPresent) {
+                    val p = proposalOpt.get()
+                    return VersionAuthorDto(
+                        id = p.authorId,
+                        name = p.authorName,
+                        email = p.authorEmail
+                    )
+                }
+            }
+        }
+
+        // Фолбэк: bootstrap/restore/ручные версии — показываем того, кто зафиксировал снимок
         return VersionAuthorDto(
             id = v.editedById,
             name = v.editedByName,

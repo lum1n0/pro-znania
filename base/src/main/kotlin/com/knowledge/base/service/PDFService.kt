@@ -46,7 +46,9 @@ class PDFService(
         "http://localhost:8080/images/",
         "https://localhost:8080/images/",
         "http://10.15.23.244:8080/images/",
-        "https://10.15.23.244:8080/images/"
+        "https://10.15.23.244:8080/images/",
+        "http://pro-znania:8080/images/",
+        "https://pro-znania:8080/images/"
     )
 
     // Пакет шрифтов и helper для стилизованного текста

@@ -82,6 +82,9 @@ class SecurityConfig(
                     .requestMatchers("/api/auth/refresh").permitAll()
                     .requestMatchers("/api/auth/logout").permitAll()
 
+                    .requestMatchers(HttpMethod.GET, "/api/articles/*/views").permitAll()
+
+
                     // Новые правила для версий статей:
                     .requestMatchers(HttpMethod.GET, "/api/articles/*/versions/*/author").permitAll()
                     // Просмотр списка версий и конкретной версии
@@ -183,6 +186,8 @@ class SecurityConfig(
                     .requestMatchers("/api/category/{description}/search-by/{userId}").authenticated()
                     .requestMatchers("/api/articles/by-category").authenticated()
                     .requestMatchers("/api/articles/search").authenticated()
+                    // В SecurityConfig.kt добавьте:
+                    .requestMatchers(HttpMethod.POST, "/api/articles/admin/fix-image-urls").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)

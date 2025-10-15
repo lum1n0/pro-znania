@@ -81,7 +81,7 @@ const Header = () => {
 
             <Link to="/" className="logo">
               <img
-                src={theme === 'dark' ? "/Dark_logo.svg" : "/main_logo.svg"}
+                src={theme === 'dark' ? "/bsp2-dark.svg" : "/bsp2-light.svg"}
                 alt="Logo"
                 className="logo-header-img"
               />

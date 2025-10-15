@@ -87,11 +87,16 @@ const CategoryPage = () => {
   const [writerPermissionError, setWriterPermissionError] = useState(null);
 
   // === Функция для проверки прав WRITER ===
-  const checkWriterPermission = async (catId) => {
-    if (!isAuthenticated || !hasRole('WRITER') || catId == null || isNaN(catId)) {
-      if (canWriterEdit !== null) setCanWriterEdit(null);
-      return;
-    }
+const checkWriterPermission = async (catId) => {
+  if (!isAuthenticated || catId == null || isNaN(catId)) {
+    if (canWriterEdit !== null) setCanWriterEdit(null);
+    return;
+  }
+  if (hasRole('ADMIN') || hasRole('MODERATOR')) {
+    setCanWriterEdit(true);
+    return;
+  }
+  if (hasRole('WRITER')) {
     setIsWriterPermissionLoading(true);
     setWriterPermissionError(null);
     try {
@@ -105,7 +110,10 @@ const CategoryPage = () => {
     } finally {
       setIsWriterPermissionLoading(false);
     }
-  };
+  } else {
+    setCanWriterEdit(false);
+  }
+};
 
   // Проверка прав при изменении categoryId или роли
   useEffect(() => {
@@ -600,7 +608,7 @@ const CategoryPage = () => {
   // === Права на создание ===
   const showCreateButtons = useMemo(() => {
     return isAuthenticated && (
-      hasRole('ADMIN') ||
+      hasRole('ADMIN') || hasRole('MODERATOR') ||
       (hasRole('WRITER') && !isWriterPermissionLoading && canWriterEdit === true)
     );
   }, [isAuthenticated, hasRole, isWriterPermissionLoading, canWriterEdit]);
@@ -852,9 +860,12 @@ const CategoryPage = () => {
           </div>
         ) : filteredArticles.length > 0 ? (
           <div className="knowledgehub-articles-grid-layout">
-            {filteredArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
+            {filteredArticles
+              .slice() // создаем копию, чтобы не мутировать оригинальный массив
+              .sort((a, b) => (a.id || 0) - (b.id || 0)) // сортируем по id по возрастанию
+              .map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
           </div>
         ) : (
           <div className="knowledgehub-empty-articles-state">

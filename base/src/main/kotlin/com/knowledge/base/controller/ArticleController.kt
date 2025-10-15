@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.knowledge.base.dto.ArticleDto
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.knowledge.base.service.ArticleService
+import com.knowledge.base.service.ArticleViewService
 import com.knowledge.base.service.FileStorageService
 import com.knowledge.base.service.PDFService
 import org.springframework.data.domain.Page
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -24,7 +26,9 @@ class ArticleController(
     private val articleService: ArticleService,
     private val fileStorageService: FileStorageService,
     private val pdfService: PDFService,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val articleViewService: ArticleViewService
+
 ) {
 
     @PostMapping("/upload-image", consumes = ["multipart/form-data"])
@@ -185,5 +189,23 @@ class ArticleController(
     @DeleteMapping("/delete/{id}")
     fun deleteArticle(authentication: Authentication, @PathVariable id: Long) {
         articleService.deleteArticleById(authentication.name, id)
+    }
+    @GetMapping("/{id}/views")
+    fun getArticleViews(@PathVariable id: Long): ResponseEntity<Map<String, Long>> {
+        val total = articleViewService.getTotalViews(id)
+        val last24h = articleViewService.getViewsLast24h(id)
+        return ResponseEntity.ok(mapOf("total" to total, "last24h" to last24h))
+    }
+
+    @PostMapping("/admin/fix-image-urls")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun fixImageUrls(): ResponseEntity<String> {
+        return try {
+            val result = articleService.fixImageUrls()
+            ResponseEntity.ok(result)
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Ошибка при исправлении URL: ${e.message}")
+        }
     }
 }

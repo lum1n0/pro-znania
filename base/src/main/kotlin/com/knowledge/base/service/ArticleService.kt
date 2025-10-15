@@ -1,5 +1,7 @@
 package com.knowledge.base.service
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.knowledge.base.dto.ArticleDto
 import com.knowledge.base.dto.CategoryDto
 import com.knowledge.base.mapper.ArticleMapper
@@ -9,6 +11,7 @@ import com.knowledge.base.repository.AccessRoleRepository
 import com.knowledge.base.repository.ArticleRepository
 import com.knowledge.base.repository.CategoryRepository
 import com.knowledge.base.repository.UserRepository
+import jakarta.annotation.PostConstruct
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.security.access.AccessDeniedException
@@ -28,9 +31,107 @@ class ArticleService(
     private val writerPermissionService: WriterPermissionService,
     private val indexingService: IndexingService,
     // добавлено: сервис версий
+    private val objectMapper: ObjectMapper,
     private val articleVersionService: ArticleVersionService
 ) {
 
+    @PostConstruct
+    fun init() {
+        fixImageUrlsOnStartup()
+    }
+
+    /**
+     * Автоматически исправляет URL изображений при запуске приложения
+     * Заменяет абсолютные пути на относительные
+     */
+    @Transactional
+    fun fixImageUrlsOnStartup() {
+        try {
+            val articles = articleRepository.findAll()
+            var fixedCount = 0
+
+            articles.forEach { article ->
+                val fixedDescription = fixImageUrlsInJson(article.description)
+                if (fixedDescription != article.description) {
+                    articleRepository.save(article.copy(description = fixedDescription))
+                    fixedCount++
+                    println("Исправлены URL в статье ID: ${article.id}")
+                }
+            }
+
+            if (fixedCount > 0) {
+                println("✅ Исправлено URL изображений в $fixedCount статьях")
+            } else {
+                println("ℹ️  Не найдено статей с абсолютными путями для исправления")
+            }
+        } catch (e: Exception) {
+            println("❌ Ошибка при исправлении URL изображений: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Ручной вызов для исправления URL изображений
+     */
+    @Transactional
+    fun fixImageUrls(): String {
+        val articles = articleRepository.findAll()
+        var fixedCount = 0
+
+        articles.forEach { article ->
+            val fixedDescription = fixImageUrlsInJson(article.description)
+            if (fixedDescription != article.description) {
+                articleRepository.save(article.copy(description = fixedDescription))
+                fixedCount++
+            }
+        }
+
+        return "Исправлено URL изображений в $fixedCount статьях"
+    }
+
+    /**
+     * Исправляет URL изображений в JSON описании статьи
+     * Заменяет абсолютные пути на относительные
+     */
+    private fun fixImageUrlsInJson(json: JsonNode?): JsonNode? {
+        if (json == null) return json
+
+        return try {
+            var jsonString = json.toString()
+
+            // Сохраняем оригинальную строку для сравнения
+            val originalString = jsonString
+
+            // Заменяем все абсолютные пути на относительные
+            // Паттерн для поиска: http://любой_домен:порт/images/файл
+            val absolutePathPattern = Regex("""http://[^"/]+:?\d*/images/([^"]+)""")
+
+            jsonString = absolutePathPattern.replace(jsonString) { matchResult ->
+                val fileName = matchResult.groupValues[1]
+                println("Найден абсолютный путь: ${matchResult.value} -> заменяем на: /images/$fileName")
+                "/images/$fileName"
+            }
+
+            // Дополнительно: заменяем варианты с localhost и конкретными IP
+            jsonString = jsonString
+                .replace("http://localhost:8080/images/", "/images/")
+                .replace("http://10.15.22.141:8080/images/", "/images/")
+                .replace("http://pro-znania:8080/images/", "/images/")
+                .replace("http://pro-znania/images/", "/images/")
+                .replace("http://pro-znania-test/images/", "/images/")
+
+            // Если строка изменилась, создаем новый JsonNode
+            if (jsonString != originalString) {
+                objectMapper.readTree(jsonString)
+            } else {
+                json // возвращаем оригинальный, если изменений не было
+            }
+        } catch (e: Exception) {
+            println("❌ Ошибка при обработке JSON: ${e.message}")
+            e.printStackTrace()
+            json // Возвращаем оригинальный JSON в случае ошибки
+        }
+    }
     @Transactional(readOnly = true)
     fun getGuestArticlesByCategory(categoryId: Long): List<ArticleDto> {
         val category = categoryRepository.findById(categoryId).orElse(null)
@@ -222,25 +323,27 @@ class ArticleService(
     fun getArticleEntityById(id: Long) = articleRepository.findById(id).orElse(null)
 
     @Transactional
-    fun softDeleteArticle(currentUserEmail: String, id: Long, isDelete: Boolean): ArticleDto? {
+    fun softDeleteArticle(currentUserEmail: String, id: Long, isDelete: Boolean): ArticleDto {
         val currentUser = userRepository.findByEmail(currentUserEmail)
             ?: throw AccessDeniedException("Forbidden")
-        val article = articleRepository.findById(id).orElse(null) ?: return null
+        val article = articleRepository.findById(id)
+            .orElseThrow { IllegalArgumentException("Статья с ID $id не найдена") }
+
         assertCanEditCategory(currentUser, article.category)
 
-        val updatedArticle = article.copy(isDelete = isDelete)
-        val savedArticle = articleRepository.save(updatedArticle)
+        val saved = articleRepository.save(article.copy(isDelete = isDelete))
 
-        if (isDelete) {
-            indexingService.deleteArticle(id)
-        } else {
-            indexingService.indexArticle(savedArticle)
-        }
+        // снимок версии (как и было)
+        articleVersionService.createSnapshot(
+            saved,
+            currentUser,
+            if (isDelete) "soft-delete" else "restore"
+        )
 
-        // Снимок факта изменения флага удаления
-        articleVersionService.createSnapshot(savedArticle, currentUser, "soft-delete=$isDelete")
+        // ВАЖНО: вызывать индексацию по ID
+        indexingService.indexArticleById(saved.id)
 
-        return articleMapper.toDto(savedArticle)
+        return articleMapper.toDto(saved)
     }
 
     @Transactional

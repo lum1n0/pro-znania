@@ -232,4 +232,10 @@ class IndexingService(
 
         return (topWords + ngrams).take(16).toList()
     }
+    @Async
+    @Transactional(readOnly = true)
+    fun indexArticleById(articleId: Long) {
+        // Вариант 1: простой рефетч
+        val article = articleRepository.findById(articleId).orElse(null) ?: return
+    }
 }
