@@ -65,6 +65,7 @@ const Header = () => {
   const handleMyWork = () => {
     navigate('/my/work');
   };
+  const handleProfile = () => { navigate('/profile'); };
 
   const isAdmin = isAuthenticated && hasRole('ADMIN');
   const isWriter = isAuthenticated && hasRole('WRITER');
@@ -121,15 +122,7 @@ const Header = () => {
               </button>
             ) : (
               <div className="auth-actions">
-                {(isAdmin || isWriter || isModerator) && (
-                  <button
-                    className="btn btn-secondary"
-                    onClick={handleMyWork}
-                    style={{ marginRight: '10px' }}
-                  >
-                    Мои работы
-                  </button>
-                )}
+                
 
                 {(isAdmin || isWriter || isModerator) && (
                   <button
@@ -150,6 +143,10 @@ const Header = () => {
                     Админ панель
                   </button>
                 )}
+
+            <button className="btn btn-primary"
+                    style={{ marginRight: '10px' }} onClick={handleProfile}>Профиль</button>
+
 
                 <button
                   className="btn"

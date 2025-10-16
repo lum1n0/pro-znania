@@ -1,19 +1,16 @@
-import React from 'react';
-import "../style/ArticleCard.css"
+// src/component/ArticleCard.jsx (обновлённый)
+import React, { useEffect, useState } from 'react';
+import '../style/ArticleCard.css';
 import { Link } from 'react-router-dom';
+import { profileAPI } from '../api/apiServese';
+// Правильные импорты для FontAwesome
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbtack, faThumbtackSlash } from '@fortawesome/free-solid-svg-icons';
 
 const deltaToHtml = (delta) => {
   if (!delta || !Array.isArray(delta.ops)) return '';
-
   let html = '';
-
-  delta.ops.forEach(op => {
-    if (typeof op.insert === 'string') {
-      let text = op.insert;
-      html += text;
-    }
-  });
-
+  delta.ops.forEach(op => { if (typeof op.insert === 'string') html += op.insert; });
   return html;
 };
 
@@ -27,47 +24,133 @@ const stripHtmlTags = (html) => {
 const truncateText = (text, maxLength = 120) => {
   if (!text) return '';
   const cleanText = text.trim();
-  if (cleanText.length <= maxLength) return cleanText;
-  return cleanText.substring(0, maxLength) + '...';
+  return cleanText.length <= maxLength ? cleanText : cleanText.substring(0, maxLength) + '...';
 };
 
 const getTextFromDelta = (delta) => {
   if (!delta) return '';
-  
-  // Если delta уже объект с ops
-  if (typeof delta === 'object' && delta.ops) {
-    const html = deltaToHtml(delta);
-    const text = stripHtmlTags(html);
-    return truncateText(text);
-  }
-  
-  // Если delta - строка (уже HTML)
-  if (typeof delta === 'string') {
-    const text = stripHtmlTags(delta);
-    return truncateText(text);
-  }
-  
+  if (typeof delta === 'object' && delta.ops) return truncateText(stripHtmlTags(deltaToHtml(delta)));
+  if (typeof delta === 'string') return truncateText(stripHtmlTags(delta));
   return '';
 };
 
-const ArticleCard = ({ article }) => {
-  const imageUrl = article.imageUrl || '/images/default-article.jpg';
+// Кэш избранного
+const FAVORITES_CACHE_KEY = 'favoriteIds';
+const readFavoriteIds = () => {
+  try { 
+    const raw = localStorage.getItem(FAVORITES_CACHE_KEY); 
+    const arr = raw ? JSON.parse(raw) : null; 
+    return Array.isArray(arr) ? arr : null; 
+  } catch { 
+    return null; 
+  }
+};
+
+const writeFavoriteIds = (ids) => { 
+  try { 
+    localStorage.setItem(FAVORITES_CACHE_KEY, JSON.stringify(Array.from(new Set(ids)))); 
+  } catch {} 
+};
+
+// Простая мемоизация, чтобы не дергать API многократно на сетке карточек
+let favoritesLoadPromise = null;
+const ensureFavoritesLoaded = async () => {
+  const cached = readFavoriteIds();
+  if (cached) return cached;
+  if (!favoritesLoadPromise) {
+    favoritesLoadPromise = profileAPI.getFavorites()
+      .then(resp => {
+        const ids = Array.isArray(resp.data) ? resp.data.map(f => Number(f.article?.id)).filter(Boolean) : [];
+        writeFavoriteIds(ids);
+        return ids;
+      })
+      .catch(() => [])
+      .finally(() => { favoritesLoadPromise = null; });
+  }
+  return favoritesLoadPromise;
+};
+
+export default function ArticleCard({ article }) {
+  const [favPending, setFavPending] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!article?.id) return;
+      try {
+        const ids = await ensureFavoritesLoaded();
+        if (mounted) setAdded(ids.includes(Number(article.id)));
+      } catch { if (mounted) setAdded(false); }
+    })();
+    return () => { mounted = false; };
+  }, [article?.id]);
+
+  const stopLinkEarly = (e) => { 
+    e.preventDefault(); 
+    e.stopPropagation(); 
+  };
+
+  const toggleFavorite = async (e) => {
+    e.preventDefault(); 
+    e.stopPropagation();
+    if (!article?.id || favPending) return;
+    setFavPending(true);
+    const id = Number(article.id);
+    const current = readFavoriteIds() || [];
+    try {
+      if (added) {
+        await profileAPI.removeFavorite(id);
+        writeFavoriteIds(current.filter(x => x !== id));
+        setAdded(false);
+      } else {
+        await profileAPI.addFavorite(id);
+        writeFavoriteIds([...current, id]);
+        setAdded(true);
+      }
+    } catch (err) {
+      console.error('Ошибка переключения избранного:', err);
+    } finally {
+      setFavPending(false);
+    }
+  };
 
   return (
-    <Link to={`/article/${article.id}`} className="knowledgehub-article-card-link">
+    <Link className="knowledgehub-article-card-link" to={`/article/${article.id}`}>
       <article className="knowledgehub-article-tile">
         <div className="knowledgehub-article-content-body">
-          <h3 className="knowledgehub-article-heading">{article.title}</h3>
+          
+          <div className="title_and_pinned"> 
+            <h3 className="knowledgehub-article-heading">
+              {article.title}
+            </h3>
+            <div className="knowledgehub-article-footer-bar">
+              <button
+                type="button"
+                className={`article-card__btn ${added ? 'is-favorite' : ''}`}
+                onMouseDown={stopLinkEarly}
+                onClick={toggleFavorite}
+                disabled={favPending}
+                title={added ? "Убрать из избранного" : "Добавить в избранное"}
+                aria-pressed={added}
+              >
+                {favPending ? (
+                  '...'
+                ) : added ? (
+                  <FontAwesomeIcon icon={faThumbtackSlash} />
+                ) : (
+                  <FontAwesomeIcon icon={faThumbtack} />
+                )}
+              </button>
+            </div>
+          </div>
+          
           <p className="knowledgehub-article-excerpt-preview">
             {getTextFromDelta(article.description)}
           </p>
-          <div className="knowledgehub-article-footer-bar">
-            <span className="knowledgehub-article-read-action">Читать далее →</span>
-          </div>
+          
         </div>
       </article>
     </Link>
   );
-};
-
-export default ArticleCard;
+}

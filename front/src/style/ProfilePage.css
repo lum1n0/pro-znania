@@ -1,0 +1,14 @@
+.no-bullet{
+      list-style-type: none;
+
+}
+
+.links{
+      text-decoration: none;
+      color: #3498db;
+;
+}
+
+.status{
+      color: red;
+}

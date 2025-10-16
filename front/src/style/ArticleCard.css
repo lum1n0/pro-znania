@@ -188,3 +188,15 @@
 [data-theme="dark"] .knowledgehub-article-excerpt-preview {
   color: #aaa;
 }
+
+
+.title_and_pinned{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.article-card__btn{
+  border: none;
+  background: none;
+}

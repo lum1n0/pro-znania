@@ -274,3 +274,11 @@ export const moderationAPI = {
 export const myWorkAPI = {
   getMyWork: () => ApiClient.get('/api/my/work'),
 };
+
+//my profile
+export const profileAPI = {
+  getMyData: () => ApiClient.get('/api/profile/my-date'),
+  getFavorites: () => ApiClient.get('/api/profile/favorites'),
+  addFavorite: (articleId) => ApiClient.post(`/api/profile/favorites/${articleId}`),
+  removeFavorite: (articleId) => ApiClient.delete(`/api/profile/favorites/${articleId}`),
+};
