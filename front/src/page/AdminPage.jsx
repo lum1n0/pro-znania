@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import '../style/AdminPage.css';
+import { MdEditNotifications } from "react-icons/md";
 
 const AdminPage = () => {
   const { hasRole } = useAuthStore();
@@ -116,6 +117,19 @@ const AdminPage = () => {
               </span>
             </Link>
           )}
+
+            {(isAdmin || isModerator) && (
+                <Link to="/admin/Invoice" className="admin-card invoice">
+                    <div className="card-icon">
+                        <MdEditNotifications />
+                    </div>
+                    <h3>Рассылка</h3>
+                    <p>Отправка Рассылки пользователям</p>
+                    <span className="card-arrow">
+                        <i className="fas fa-arrow-right"></i>
+                    </span>
+                </Link>
+            )}
         </div>
       </div>
     </div>

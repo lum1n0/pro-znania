@@ -150,105 +150,122 @@ export default function ModerationPage() {
 
   if (loading) return <div className="mod-loading">Загрузка…</div>;
 
-  return (
-    <div className="mod-container">
-      <h1 className="mod-title">Модерация</h1>
-
-      <div className="mod-list">
-        {sortedPending.map(p => {
-          const isOpen = expanded.has(p.id);
-          const full = details[p.id]; // детальные данные (после открытия)
-          const descriptionDelta = full?.description ?? p.description; // если в pending уже есть — используем
-          const html = deltaToHtml(descriptionDelta);
-
-          return (
-            <div key={p.id} className={`mod-card ${isOpen ? 'open' : ''}`}>
-              <div className="mod-card-head" onClick={() => toggleExpand(p.id)}>
-                <div className="mod-head-left">
-                  <span className="mod-action">
-                    Действие: <span className="mod-accent">{actionLabel(p.action)}</span>
-                  </span>
-                  <span className={statusClass()}>{statusLabel()}</span>
-                </div>
-                <div className="mod-head-right">
-                  <span className="mod-title-line">
-                    Заголовок: <span className="mod-accent">{p.title}</span>
-                  </span>
-                  <span className="mod-category">
-                    Категория: <span className="mod-accent">{categoryName(p.categoryId)}</span>
-                  </span>
-                  <span className="mod-author">
-                    Автор: <span className="mod-accent">{p.authorEmail}</span>
-                  </span>
-                  <span className="mod-date">
-                    Создано: {new Date(p.createdAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {isOpen && (
-                <div className="mod-content">
-<div className="mod-meta">
-  {full?.authorName && (
-    <div className="mod-meta-row">
-      <b>Имя автора:</b> <span>{full.authorName}</span>
-    </div>
-  )}
-
-  {Array.isArray(full?.videoPath) && (
-    <div className="mod-meta-row">
-      <b>Видео:</b>{' '}
-      <span>{full.videoPath.length > 0 ? 'Приложен' : 'Не приложен'}</span>
-    </div>
-  )}
-
-  {Array.isArray(full?.filePath) && (
-    <div className="mod-meta-row">
-      <b>Файлы:</b>{' '}
-      <span>{full.filePath.length > 0 ? 'Приложен' : 'Не приложен'}</span>
-    </div>
-  )}
-</div>
-
-
-                  <div
-                    className="mod-description html-content"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
-                  />
-
-                  <div className="mod-actions">
-                    <div className="mod-approve">
-                      <label>Комментарий к одобрению (необязательно)</label>
-                      <input
-                        value={approveCommentById[p.id] || ''}
-                        onChange={e =>
-                          setApproveCommentById(prev => ({ ...prev, [p.id]: e.target.value }))
-                        }
-                      />
-                      <button className="btn btn-approve" onClick={() => approve(p.id)}>
-                        Одобрить
-                      </button>
-                    </div>
-
-                    <div className="mod-reject">
-                      <label>Причина отклонения (обязательно)</label>
-                      <input
-                        value={rejectReasonById[p.id] || ''}
-                        onChange={e =>
-                          setRejectReasonById(prev => ({ ...prev, [p.id]: e.target.value }))
-                        }
-                      />
-                      <button className="btn btn-reject" onClick={() => reject(p.id)}>
-                        Отклонить
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+    return (
+        <div className="mod2-root">
+            <div className="mod2-table-side">
+                <div className="mod2-title">Модерация</div>
+                <table className="mod2-table">
+                    <thead>
+                    <tr>
+                        <th>Имя</th>
+                        <th>Почта</th>
+                        <th>Статья</th>
+                        <th>Статус</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {sortedPending.map((row) => (
+                        <tr
+                            key={row.id}
+                            className={expanded.has(row.id) ? "selected" : ""}
+                            onClick={() => toggleExpand(row.id)}
+                        >
+                            <td>
+                                <div className="mod2-user">
+                                    {row.authorName || 'John Deo'}
+                                </div>
+                            </td>
+                            <td>{row.authorEmail}</td>
+                            <td>{row.title}</td>
+                            <td>
+                <span className={
+                    row.status === "PENDING"
+                        ? "badge badge-pending"
+                        : row.status === "APPROVED"
+                            ? "badge badge-ok"
+                            : row.status === "REJECTED"
+                                ? "badge badge-rejected"
+                                : ""
+                }>
+                  {row.status === "PENDING" && "На рассмотрении"}
+                    {row.status === "APPROVED" && "Одобрено"}
+                    {row.status === "REJECTED" && "Отклонено"}
+                </span>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
             </div>
-          );
-        })}
-      </div>
-    </div>
+
+            {/* Правая панель. Рисуется для каждой раскрытой заявки (supports multi-panel expand) */}
+            {[...expanded].map((id) => {
+                const detail = details[id] || {};
+                return (
+                    <div className="mod2-panel-side" key={id}>
+                        <div className="mod2-panel-header">
+                            <div className="mod2-panel-title">Запрос на создание</div>
+                            <button className="mod2-panel-close" onClick={() => toggleExpand(id)}>×</button>
+                        </div>
+                        <label>
+                            Заголовок
+                            <input className="mod2-panel-input" disabled value={detail.title || ""} />
+                        </label>
+                        <label>
+                            Описание
+                            <textarea
+                                className="mod2-panel-input"
+                                disabled
+                                value={
+                                    typeof detail.description === 'string'
+                                        ? detail.description
+                                        : (detail.description?.ops?.map(op => op.insert)?.join('') || "")
+                                }
+                            />
+                        </label>
+                        <label>
+                            Категория
+                            <input
+                                className="mod2-panel-input"
+                                disabled
+                                value={categoryMap[detail.categoryId] || ""}
+                            />
+                        </label>
+                        <div className="mod2-panel-meta">
+                            {detail.createdAt && (
+                                <span>{new Date(detail.createdAt).toLocaleString('ru-RU')}</span>
+                            )}
+                        </div>
+
+                        <label>
+                            Комментарий
+                            <input
+                                className="mod2-panel-input"
+                                placeholder="Комментарий"
+                                value={approveCommentById[id] || rejectReasonById[id] || ""}
+                                onChange={e => {
+                                    setApproveCommentById(prev => ({ ...prev, [id]: e.target.value }));
+                                    setRejectReasonById(prev => ({ ...prev, [id]: e.target.value }));
+                                }}
+                            />
+                        </label>
+                        <button
+                            className="mod2-approve-btn"
+                            style={{ background: '#dcfeeb' }}
+                            onClick={() => approve(id)}
+                        >
+                            Одобрить
+                        </button>
+                        <button
+                            className="mod2-reject-btn"
+                            style={{ background: '#ffd6df' }}
+                            onClick={() => reject(id)}
+                        >
+                            Отклонить
+                        </button>
+                    </div>
+                );
+            })}
+        </div>
   );
 }

@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import { useChatStore } from '../store/chatStore';
 import { useSidebarStore } from '../store/sidebarStore';
 import { Menu } from 'lucide-react';
+import BellNotification from "./BellNotification.jsx";
 import '../style/Header.css';
 import '../style/ThemeToggle.css'; // Новый файл CSS для стилей переключателя
 
@@ -144,6 +145,7 @@ const Header = () => {
                   </button>
                 )}
 
+                  <BellNotification />
             <button className="btn btn-primary"
                     style={{ marginRight: '10px' }} onClick={handleProfile}>Профиль</button>
 

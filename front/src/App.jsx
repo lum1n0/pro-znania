@@ -19,7 +19,8 @@ import AccessRoleManagementPage from './page/AccessRoleManagementPage';
 import EditArticlePage from './page/EditArticlePage';
 import FeedbackAdminPage from './page/FeedbackAdminPage';
 import LogViewerPage from './page/LogViewerPage';
-import MyWorkPage from './page/MyWorkPage';
+import MyRequestsPage from './page/MyRequestsPage.jsx';
+import MyArticlesPage from './page/MyWorkPage.jsx';
 import ModerationPage from './page/ModerationPage';
 import AllCategoriesPage from './page/AllCategoryPage';
 import { ToastContainer } from 'react-toastify';
@@ -27,6 +28,8 @@ import CategoryPage from './page/CategoryPage';
 import NotFoundPage from './page/NotFoundPage';
 import ProfilePage from './page/ProfilePage';
 import FavoritesPage from './page/FavoritesPage';
+import Invoice from "./page/invoice.jsx"
+
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
@@ -89,8 +92,10 @@ function App() {
                 <Route path="/admin/access-roles" element={<AccessRoleManagementPage />} />
                 <Route path="/admin/feedback" element={<FeedbackAdminPage />} />
                 <Route path="/admin/logs" element={<LogViewerPage />} />
-                <Route path="/my/work" element={<MyWorkPage />} />
+                <Route path="/my/articles" element={<MyArticlesPage />} />
+                  <Route path="/my/requests" element={<MyRequestsPage />} />
                 <Route path="/moderation" element={<ModerationPage />} />
+                <Route path="/admin/Invoice" element={ <Invoice/> } />
               </>
             )}
           </Routes>

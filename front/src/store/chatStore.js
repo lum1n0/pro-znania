@@ -41,8 +41,16 @@ export const useChatStore = create(
         if (!get().stompClient || !get().stompClient.connected) {
           const wsBaseUrl = getWebSocketBaseUrl();
           const springSocket = new SockJS(`${wsBaseUrl}/chat`);
+            springSocket.onclose = () => {
+                console.warn('WebSocket закрыт сервером');
+                set({ isConnected: false, isBotThinking: false });
+            };
           const newStompClient = Stomp.over(springSocket);
           newStompClient.debug = null;
+
+            if (get().stompClient && !get().stompClient.connected) {
+                set({ isConnected: false });
+            }
 
           const authToken = Cookies.get('authToken');
           newStompClient.connect(

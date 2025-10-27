@@ -161,7 +161,7 @@ const CreateArticlePage = () => {
           hasVideo: !!videoFile,
         });
         showSuccess('Заявка отправлена на модерацию');
-        navigate('/my/work');
+        navigate('/my/requests');
       } else if (isAdmin(user) || isModerator(user)) {
         // MODERATOR/ADMIN — прямая публикация
         const { data } = await apiClient.post('/api/articles', fd, {

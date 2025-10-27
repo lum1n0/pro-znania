@@ -24,7 +24,8 @@ class ModerationService(
     private val writerPermissionService: WriterPermissionService,
     private val fileStorageService: FileStorageService,
     private val indexingService: IndexingService,
-    private val articleVersionService: ArticleVersionService
+    private val articleVersionService: ArticleVersionService,
+    private val notificationService: NotificationService // ← добавлено
 ) {
 
     private fun toDto(p: ArticleProposal) = ArticleProposalDto(
@@ -153,6 +154,7 @@ class ModerationService(
         if (moderator.role.title != "ADMIN" && moderator.role.title != "MODERATOR") {
             throw AccessDeniedException("Forbidden")
         }
+
         val p = articleProposalRepository.findById(proposalId).orElseThrow { IllegalArgumentException("Заявка не найдена") }
         if (p.status != ModerationStatus.PENDING) throw IllegalStateException("Заявка уже обработана")
 
@@ -169,7 +171,7 @@ class ModerationService(
                     filePath = p.filePath
                 )
             )
-            indexingService.indexArticle(created)
+            //indexingService.indexArticle(created)
             created
         } else {
             val article = articleRepository.findById(p.articleId!!).orElseThrow { IllegalArgumentException("Статья не найдена") }
@@ -182,7 +184,7 @@ class ModerationService(
                 filePath = p.filePath ?: article.filePath
             )
             val saved = articleRepository.save(updated)
-            indexingService.updateArticle(saved)
+            //indexingService.updateArticle(saved)
             saved
         }
 
@@ -197,7 +199,12 @@ class ModerationService(
             reviewedAt = Instant.now(),
             rejectReason = comment
         )
-        return toDto(articleProposalRepository.save(updatedProposal))
+        val savedProposal = articleProposalRepository.save(updatedProposal)
+
+        // Уведомление автору об одобрении
+        notificationService.notifyProposalApproved(savedProposal, moderator, savedArticle)
+
+        return toDto(savedProposal)
     }
 
     @Transactional
@@ -206,6 +213,7 @@ class ModerationService(
         if (moderator.role.title != "ADMIN" && moderator.role.title != "MODERATOR") {
             throw AccessDeniedException("Forbidden")
         }
+
         val p = articleProposalRepository.findById(proposalId).orElseThrow { IllegalArgumentException("Заявка не найдена") }
         if (p.status != ModerationStatus.PENDING) throw IllegalStateException("Заявка уже обработана")
 
@@ -217,7 +225,12 @@ class ModerationService(
             reviewedAt = Instant.now(),
             rejectReason = reason
         )
-        return toDto(articleProposalRepository.save(updated))
+        val savedProposal = articleProposalRepository.save(updated)
+
+        // Уведомление автору об отклонении
+        notificationService.notifyProposalRejected(savedProposal, moderator, reason)
+
+        return toDto(savedProposal)
     }
 
     @Transactional(readOnly = true)

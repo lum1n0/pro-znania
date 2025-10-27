@@ -8,6 +8,7 @@ import java.time.Instant
 interface ArticleViewHitRepository : JpaRepository<ArticleViewHit, Long> {
     fun existsByArticleIdAndAccessJti(articleId: Long, accessJti: String): Boolean
     fun countByArticleId(articleId: Long): Long
+    fun deleteByArticleId(articleId: Long)
     fun countByArticleIdAndCreatedAtAfter(articleId: Long, after: Instant): Long
 }
 

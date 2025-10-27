@@ -200,3 +200,63 @@
   border: none;
   background: none;
 }
+
+/* Кнопка со звездой */
+.article-card__star-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.22s cubic-bezier(.43,.19,.18,.93);
+    outline: none;
+}
+
+.article-card__star-btn:hover {
+    background: #f0f9fa;
+    transform: scale(1.15);
+}
+
+.article-card__star-btn:active {
+    transform: scale(0.95);
+}
+
+.article-card__star-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Иконка звезды */
+.article-card__star-icon {
+    font-size: 15px;
+    color: #cbd5e0;
+    transition: color 0.22s, transform 0.22s;
+}
+
+/* Закрашенная звезда (добавлено в избранное) */
+.article-card__star-btn.is-favorite .article-card__star-icon {
+    color: #fbbf24;
+    animation: starBounce 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+.article-card__star-btn:hover .article-card__star-icon {
+    color: #fbbf24;
+    transform: rotate(-12deg);
+}
+
+/* Анимация появления заполненной звезды */
+@keyframes starBounce {
+    0% { transform: scale(0.3) rotate(0deg); }
+    50% { transform: scale(1.25) rotate(180deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
+/* Индикатор загрузки */
+.article-card__loading {
+    font-size: 16px;
+    color: #009aa3;
+    font-weight: 600;
+}

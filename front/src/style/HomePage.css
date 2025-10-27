@@ -53,6 +53,8 @@
   position: relative;
   display: flex;
   align-items: center;
+  border: 1px solid #8f8f8f;
+  border-radius: 5px;
 }
 
 .search-icon {
@@ -68,7 +70,6 @@
   border: 1px solid #ddd;
   border-radius: 12px;
   font-size: 1rem;
-  outline: none;
   transition: all 0.2s ease;
 }
 

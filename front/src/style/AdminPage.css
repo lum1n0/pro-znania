@@ -204,6 +204,18 @@
   background: #cac71e;
 }
 
+.admin-card.invoice .card-icon {
+    color: #240592;
+}
+
+.admin-card.invoice::before {
+    background: #240592;
+}
+
+.admin-card.invoice:hover::before {
+    background: #240592;
+}
+
 /* Плавное появление карточек по очереди */
 @keyframes slideInFade {
   0% {
@@ -243,6 +255,10 @@
 
 .admin-card:nth-child(6) {
   animation-delay: 0.6s;
+}
+
+.admin-card:nth-child(7) {
+    animation-delay: 0.7s;
 }
 
 /* Дополнительный эффект: легкая волна при наведении */

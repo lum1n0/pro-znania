@@ -235,7 +235,43 @@ class IndexingService(
     @Async
     @Transactional(readOnly = true)
     fun indexArticleById(articleId: Long) {
-        // Вариант 1: простой рефетч
-        val article = articleRepository.findById(articleId).orElse(null) ?: return
+        // Обязательно тянем category + accessRoles одним запросом
+        val article = articleRepository.findByIdWithCategoryAndRoles(articleId) ?: return
+
+        val textContent = quillParser.extractText(article.description)
+        if (textContent.isBlank()) return
+
+        val categoryId = article.category?.id ?: 0L
+        val categoryTitle = article.category?.description ?: ""
+        val accessRoleIds = article.category?.accessRoles?.mapNotNull { it.id?.toString() } ?: emptyList()
+        val accessRoleTitles = article.category?.accessRoles?.mapNotNull { it.title } ?: emptyList()
+
+        val keyphrases = autoKeyphrases(article.title ?: "", textContent)
+        val chunks = quillParser.chunk(textContent, chunkSize = 900, overlap = 150)
+        val documents = chunks.mapIndexed { idx, chunk ->
+            val documentId = UUID.nameUUIDFromBytes("${article.id}#$idx".toByteArray()).toString()
+            Document(
+                documentId,
+                chunk,
+                mapOf(
+                    "articleId" to (article.id ?: 0L),
+                    "title" to (article.title ?: ""),
+                    "categoryId" to categoryId,
+                    "categoryTitle" to categoryTitle,
+                    "accessRoles" to accessRoleIds,
+                    "accessRoleTitles" to accessRoleTitles,
+                    "keywords" to keyphrases
+                )
+            )
+        }
+        vectorStore.add(documents)
+
+        val luceneDoc = mapOf(
+            "articleId" to (article.id ?: 0L),
+            "title" to (article.title ?: ""),
+            "body" to textContent
+        )
+        luceneService.addDocument(luceneDoc)
+        logger.info("Индексирована статья: ${article.id}")
     }
 }

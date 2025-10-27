@@ -1,14 +1,312 @@
-.no-bullet{
-      list-style-type: none;
+/* --- Анимации --- */
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(30px);}
+    100% { opacity: 1; transform: none;}
+}
+
+@keyframes glowFade {
+    0% { box-shadow: 0 0 0 0 #009aa3; }
+    100% { box-shadow: 0 0 22px 3px #009aa3;}
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg);}
+}
+
+/* --- Контейнер --- */
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto 26px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 43px #b9e7ef25;
+    padding: 34px 28px 34px 28px;
+    min-height: 70vh;
+    animation: fadeInUp 0.55s cubic-bezier(.42,.18,.31,1);
+}
+
+[data-theme='dark'] .profile-container {
+
+    background: #061927;
 
 }
 
-.links{
-      text-decoration: none;
-      color: #3498db;
-;
+/* --- Заголовок --- */
+.profile-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #23294a;
+    margin: 0 0 26px;
+    letter-spacing: .01em;
 }
 
-.status{
-      color: red;
+/* --- Навигация (не трогаем) --- */
+.profile-nav {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-start;
+    margin-bottom: 32px;
+    animation: fadeInUp 0.60s;
+}
+
+.profile-nav-btn {
+    font-size: 16px;
+    font-weight: 600;
+    color: #009aa3;
+    background: #f2fbfc;
+    border: none;
+    border-radius: 13px;
+    padding: 12px 36px;
+    box-shadow: 0 1px 6px #009aa305;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+    transition: background 0.19s, color 0.19s, box-shadow 0.21s;
+    outline: none;
+    will-change: background, color, box-shadow;
+}
+[data-theme='dark'] .profile-nav-btn {
+
+    color: #ffffff;
+    background: #8c8c8c;
+
+}
+[data-theme='dark'] .profile-info-label{
+
+    color: #1a1a1a;
+
+}
+
+[data-theme='dark'] .profile-badge-secondary {
+
+   color: #4c4c4c;
+
+}
+
+[data-theme='dark'] .profile-info-value {
+
+    color: #1a1a1a;
+
+}
+
+.profile-nav-btn:hover,
+.profile-nav-btn:focus {
+    background: #e1f6fa;
+    color: #026e76;
+    box-shadow: 0 1px 16px #009aa317;
+    animation: glowFade 0.36s alternate;
+}
+
+.profile-nav-btn.active {
+    background: #009aa3;
+    color: #fff;
+    box-shadow: 0 3px 17px #009aa33a;
+    pointer-events: none;
+}
+
+/* --- Контент профиля --- */
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- Карточка --- */
+.profile-card {
+    background: #f7fafc;
+    border-radius: 16px;
+    border: 1.5px solid #e8f0f8;
+    box-shadow: 0 3px 20px #bdeff117;
+    overflow: hidden;
+    animation: fadeInUp 0.45s;
+    transition: box-shadow 0.22s, border-color 0.22s;
+}
+
+.profile-card:hover {
+    box-shadow: 0 6px 28px #87ced41d;
+    border-color: #8fd8e4;
+}
+
+/* --- Заголовок карточки --- */
+.profile-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px 16px;
+    background: linear-gradient(135deg, #f2fbfc 0%, #e1f6fa 100%);
+    border-bottom: 1.5px solid #e8f0f8;
+}
+
+.profile-card-icon {
+    width: 24px;
+    height: 24px;
+    color: #009aa3;
+    flex-shrink: 0;
+}
+
+.profile-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #21284e;
+    margin: 0;
+    letter-spacing: .01em;
+}
+
+/* --- Тело карточки --- */
+.profile-card-body {
+    padding: 20px;
+}
+
+/* --- Сетка информации --- */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.profile-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-info-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #727890;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.profile-info-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #21284e;
+}
+
+/* --- Группа бейджей --- */
+.profile-badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.profile-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+.profile-badge-primary {
+    background: linear-gradient(135deg, #009aa3 0%, #007d87 100%);
+    color: #fff;
+    box-shadow: 0 3px 12px #009aa328;
+}
+
+.profile-badge-secondary {
+    background: #e1f6fa;
+    color: #009aa3;
+    border: 1.5px solid #b0e8ed;
+}
+
+/* --- Список категорий --- */
+.profile-category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.profile-category-item {
+    padding: 10px 14px;
+    background: #fff;
+    border: 1.5px solid #e8f0f8;
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: #21284e;
+    transition: all 0.18s;
+}
+
+.profile-category-item:hover {
+    border-color: #009aa3;
+    background: #effcff;
+    transform: translateX(4px);
+}
+
+/* --- Загрузка --- */
+.profile-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px 20px;
+    color: #009aa3;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.profile-loading-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #009aa3;
+    font-size: 15px;
+}
+
+.spinner {
+    width: 38px;
+    height: 38px;
+    border: 4px solid #e3e3e3;
+    border-top: 4px solid #009aa3;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+.spinner-small {
+    width: 18px;
+    height: 18px;
+    border: 3px solid #e3e3e3;
+    border-top: 3px solid #009aa3;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+/* --- Пустой текст --- */
+.profile-empty-text {
+    color: #727890;
+    font-size: 15px;
+    margin: 0;
+}
+
+/* --- Ошибка --- */
+.profile-error-card {
+    padding: 40px 20px;
+    text-align: center;
+    color: #c41c31;
+    font-size: 16px;
+    background: #fbeaea;
+}
+
+/* --- Адаптив --- */
+@media (max-width: 770px) {
+    .profile-container {
+        padding: 24px 16px;
+        border-radius: 16px;
+    }
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+    .profile-category-list {
+        grid-template-columns: 1fr;
+    }
+    .profile-nav-btn {
+        padding: 10px 8vw;
+        font-size: 15px;
+    }
 }

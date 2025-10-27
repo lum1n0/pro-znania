@@ -272,7 +272,7 @@ const EditArticlePage = () => {
           replaceVideo: !!videoFile,
         });
         showSuccess('Обновление отправлено на модерацию');
-        navigate('/my/work');
+        navigate('/my/requests');
       } else if (isAdmin(user) || isModerator(user)) {
         // MODERATOR/ADMIN — обновление и публикация
         const { data } = await apiClient.put(`/api/articles/${id}`, fd, {

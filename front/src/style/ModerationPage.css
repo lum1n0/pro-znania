@@ -1,148 +1,221 @@
- .mod-container {
-     padding: 16px 20px;
- }
+/* --- АНИМАЦИИ --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px);}
+    to   { opacity: 1; transform: translateY(0);}
+}
+@keyframes panelOpen {
+    from { opacity: 0; transform: translateX(50px);}
+    to   { opacity: 1; transform: translateX(0);}
+}
 
- .mod-title {
-     margin: 0 0 16px;
- }
+/* --- ОБНОВЛЕНИЯ ДИЗАЙНА --- */
 
- .mod-loading {
-     padding: 20px;
- }
+.mod2-root {
+    display: flex;
+    background: #f7f7fa;
+    min-height: 100vh;
+    padding-top: 22px;
+}
 
- .mod-list {
-     display: flex;
-     flex-direction: column;
-     gap: 12px;
- }
 
- .mod-card {
-     border: 1px solid #e4e6eb;
-     border-radius: 10px;
-     background: var(--card-bg, #fff);
-     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-     overflow: hidden;
- }
+.mod2-table-side {
+    width: 62%;
+    min-width: 540px;
+    padding-left: 22px;
+}
 
- .mod-card.open {
-     border-color: #c7d2fe;
-     box-shadow: 0 2px 6px rgba(79, 70, 229, 0.12);
- }
+/* Улучшение таблицы */
+.mod2-table {
+    width: 98%;
+    background: transparent;
+    border-spacing: 0 7px;
+}
 
- .mod-card-head {
-     display: flex;
-     justify-content: space-between;
-     gap: 16px;
-     padding: 12px 14px;
-     cursor: pointer;
-     background: var(--card-head-bg, #fafafa);
- }
+.mod2-table th,
+.mod2-table td {
+    background: #fff;
+    padding: 13px 10px;
+    font-size: 16px;
+    color: #21284e;
+    transition: background .18s;
+}
+.mod2-table tr.selected,
+.mod2-table tr:hover {
+    background: #e9f1fb !important;
+    cursor: pointer;
+}
 
- .mod-head-left,
- .mod-head-right {
-     display: flex;
-     gap: 12px;
-     flex-wrap: wrap;
-     align-items: center;
- }
+/* Стили для пользователя и аватара */
+.mod2-user {
+    display: flex;
+    align-items: center;
+}
+.mod2-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+    box-shadow: 0 2px 8px #bbe7e733;
+    transition: box-shadow 0.2s;
+}
+.mod2-avatar:hover {
+    box-shadow: 0px 6px 15px #aee3e4bb;
+}
 
- .mod-action,
- .mod-title-line,
- .mod-category,
- .mod-date,
- .mod-author {
-     font-size: 14px;
-     color: #333;
- }
+.badge {
+    font-size: 14px;
+    padding: 3px 13px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background .23s, color .23s;
+}
+.badge-pending {
+    background: #fcfde3;
+    color: #d6c960;
+}
 
- .mod-accent {
-     color: #1f2937;
-     font-weight: 600;
- }
+[data-theme="dark"] .badge-pending{
+    color: #d6c960;
+}
 
- .mod-badge {
-     font-size: 12px;
-     padding: 2px 8px;
-     border-radius: 999px;
-     border: 1px solid transparent;
-     text-transform: lowercase;
- }
+.badge-ok {
+    background: #dcfeeb;
+    color: #58c47c;
+}
 
- .mod-badge.pending {
-     background: #fff7ed;
-     color: #9a3412;
-     border-color: #fdba74;
- }
+[data-theme="dark"] .badge-ok {
+    color: #58c47c;
+}
 
- .mod-content {
-     padding: 12px 14px 14px;
-     border-top: 1px dashed #e5e7eb;
- }
+.badge-rejected {
+    background: #ffd6df;
+    color: #be5983;
+}
 
- .mod-meta {
-     display: flex;
-     flex-direction: column;
-     gap: 6px;
-     margin-bottom: 12px;
- }
+[data-theme="dark"] .badge-rejected {
+    color: #be5983;
+}
 
- .mod-meta-row b {
-     margin-right: 6px;
- }
+/* --- Сайд/панель --- */
+.mod2-panel-side {
+    flex: 1;
+    max-width: 410px;
+    padding: 36px 38px 0 38px;
+    background: #fff;
+    border-radius: 24px 0 0 24px;
+    box-shadow: 0 8px 40px #bbe7e722;
+    margin-left: 130px;
+    animation: panelOpen 0.32s cubic-bezier(.43,.19,.18,.93);
+    position: relative;
+    z-index: 2;
+}
 
- .mod-list-inline {
-     display: inline-flex;
-     flex-wrap: wrap;
-     gap: 8px;
-     margin: 0;
-     padding: 0;
-     list-style: none;
- }
+/* Анимация появления панели */
+.mod2-panel-side {
+    /* уже выше: animation: panelOpen... */
+}
 
- .mod-description {
-     background: var(--desc-bg, #fff);
-     border: 1px solid #eef2f7;
-     border-radius: 8px;
-     padding: 12px;
-     max-height: 360px;
-     overflow: auto;
- }
+.mod2-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 17px;
+}
 
- .mod-actions {
-     display: flex;
-     gap: 24px;
-     margin-top: 12px;
-     flex-wrap: wrap;
- }
+.mod2-panel-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #21284e;
+}
 
- .mod-approve,
- .mod-reject {
-     display: flex;
-     gap: 8px;
-     align-items: center;
- }
+.mod2-panel-close {
+    font-size: 27px;
+    color: #d9d6e0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: color .18s;
+}
+.mod2-panel-close:hover {
+    color: #ff506a;
+}
 
- .mod-approve input,
- .mod-reject input {
-     border: 1px solid #e5e7eb;
-     border-radius: 6px;
-     padding: 6px 8px;
- }
+/* Инпуты */
+.mod2-panel-input,
+.mod2-panel-select {
+    width: 100%;
+    padding: 9px 11px;
+    margin-top: 3px;
+    margin-bottom: 15px;
+    background: #f8faf9;
+    border: none;
+    border-radius: 9px;
+    font-size: 15px;
+    transition: box-shadow .16s;
+}
+.mod2-panel-input:focus {
+    outline: 2px solid #009aa385;
+    box-shadow: 0 2px 16px #009aa340;
+}
 
- .btn.btn-approve {
-     background: #10b981;
-     color: #fff;
- }
+.mod2-panel-meta {
+    margin-bottom: 13px;
+    color: #727275;
+    font-size: 15px;
+}
+.mod2-panel-subtitle {
+    font-weight: 600;
+    font-size: 15.2px;
+    margin-top: 13px;
+    margin-bottom: 7px;
+}
 
- .btn.btn-approve:hover {
-     background: #059669;
- }
+/* --- КНОПКИ --- */
+.mod2-approve-btn,
+.mod2-reject-btn {
+    width: 100%;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 0;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px #bae8ce55;
+    transition: background .18s, box-shadow .18s, color .18s;
+}
+.mod2-approve-btn {
+    color: #1d9630;
+    background: #dcfeeb;
+}
+.mod2-approve-btn:hover {
+    background: #b4efd2;
+    color: #127d2c;
+}
+.mod2-reject-btn {
+    color: #b23e5e;
+    background: #ffd6df;
+}
+.mod2-reject-btn:hover {
+    background: #f8c6d6;
+    color: #d7114b;
+}
 
- .btn.btn-reject {
-     background: #ef4444;
-     color: #fff;
- }
-
- .btn.btn-reject:hover {
-     background: #dc2626;
- }
+/* --- LOADING SPINNER --- */
+.mod-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 250px;
+}
+.mod-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e3e3e3;
+    border-top: 4px solid #009aa3;
+    border-radius: 50%;
+    animation: spin 0.83s linear infinite;
+}
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}

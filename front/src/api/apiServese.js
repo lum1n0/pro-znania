@@ -282,3 +282,58 @@ export const profileAPI = {
   addFavorite: (articleId) => ApiClient.post(`/api/profile/favorites/${articleId}`),
   removeFavorite: (articleId) => ApiClient.delete(`/api/profile/favorites/${articleId}`),
 };
+
+// 🔹 Notifications API
+export const notificationsAPI = {
+  // Получить все уведомления (пагинация + сортировка)
+  getAll: (page = 0, size = 20, sort = 'createdAt,desc') =>
+    ApiClient.get(`/api/notifications?page=${page}&size=${size}&sort=${encodeURIComponent(sort)}`),
+
+  // Получить непрочитанные уведомления
+  getUnread: () => ApiClient.get('/api/notifications/unread'),
+
+  // Получить статистику (все/непрочитанные для текущего пользователя)
+  getStats: () => ApiClient.get('/api/notifications/stats'),
+
+  // Отметить конкретное уведомление как прочитанное
+  markAsRead: (id) => ApiClient.put(`/api/notifications/${id}/read`),
+
+  // Отметить все уведомления пользователя как прочитанные
+  markAllAsRead: () => ApiClient.put('/api/notifications/read-all'),
+
+  // Удалить уведомление
+  remove: (id) => ApiClient.delete(`/api/notifications/${id}`),
+
+  // Отправить ручную рассылку (ADMIN/MODERATOR)
+  // payload соответствует серверному CustomNotificationRequest:
+  // { title, message, recipientType: 'SPECIFIC_USERS'|'BY_ROLE'|'BY_ACCESS_ROLE', recipientIds?, roleId?, accessRoleId? }
+  send: (payload) =>
+    ApiClient.post('/api/notifications/send', payload, {
+      headers: { 'Content-Type': 'application/json' },
+    }),
+
+  // Удобные хелперы
+  sendToUsers: (title, message, recipientIds) =>
+    ApiClient.post('/api/notifications/send', {
+      title,
+      message,
+      recipientType: 'SPECIFIC_USERS',
+      recipientIds,
+    }, { headers: { 'Content-Type': 'application/json' } }),
+
+  sendToRole: (title, message, roleId) =>
+    ApiClient.post('/api/notifications/send', {
+      title,
+      message,
+      recipientType: 'BY_ROLE',
+      roleId,
+    }, { headers: { 'Content-Type': 'application/json' } }),
+
+  sendToAccessRole: (title, message, accessRoleId) =>
+    ApiClient.post('/api/notifications/send', {
+      title,
+      message,
+      recipientType: 'BY_ACCESS_ROLE',
+      accessRoleId,
+    }, { headers: { 'Content-Type': 'application/json' } }),
+};

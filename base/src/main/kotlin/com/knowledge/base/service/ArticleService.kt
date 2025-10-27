@@ -9,6 +9,7 @@ import com.knowledge.base.mapper.CategoryMapper
 import com.knowledge.base.model.User
 import com.knowledge.base.repository.AccessRoleRepository
 import com.knowledge.base.repository.ArticleRepository
+import com.knowledge.base.repository.ArticleViewHitRepository
 import com.knowledge.base.repository.CategoryRepository
 import com.knowledge.base.repository.UserRepository
 import jakarta.annotation.PostConstruct
@@ -32,7 +33,9 @@ class ArticleService(
     private val indexingService: IndexingService,
     // добавлено: сервис версий
     private val objectMapper: ObjectMapper,
-    private val articleVersionService: ArticleVersionService
+    private val articleViewHitRepository: ArticleViewHitRepository,
+    private val articleVersionService: ArticleVersionService,
+    private val notificationService: NotificationService // добавьте эту зависимость
 ) {
 
     @PostConstruct
@@ -83,7 +86,7 @@ class ArticleService(
             if (fixedDescription != article.description) {
                 articleRepository.save(article.copy(description = fixedDescription))
                 fixedCount++
-            }
+            }// <-- добавить
         }
 
         return "Исправлено URL изображений в $fixedCount статьях"
@@ -200,24 +203,21 @@ class ArticleService(
         val currentUser = userRepository.findByEmail(currentUserEmail)
             ?: throw AccessDeniedException("Forbidden")
         assertCanEditCategory(currentUser, articleDto.categoryDto.id)
-
         val category = categoryRepository.findById(articleDto.categoryDto.id)
             .orElseThrow { IllegalArgumentException("Категория не найдена") }
-
         val videoPath = videoFile?.let { listOf(fileStorageService.saveFile(it, "videos")) }
         val filePaths = files?.map { fileStorageService.saveFile(it, "files") }
-
         val article = articleMapper.toEntity(articleDto).copy(
             category = category,
             videoPath = videoPath,
             filePath = filePaths
         )
-
         val savedArticle = articleRepository.save(article)
         indexingService.indexArticle(savedArticle)
-
-        // Снимок версии после создания
         articleVersionService.createSnapshot(savedArticle, currentUser, "created")
+
+        // НОВОЕ: отправляем уведомление о новой статье
+        notificationService.notifyAboutNewArticle(savedArticle, currentUser)
 
         return articleMapper.toDto(savedArticle)
     }
@@ -226,28 +226,21 @@ class ArticleService(
     fun updateArticle(currentUserEmail: String, id: Long, articleDto: ArticleDto, videoFile: MultipartFile?, files: List<MultipartFile>?): ArticleDto {
         val currentUser = userRepository.findByEmail(currentUserEmail)
             ?: throw AccessDeniedException("Forbidden")
-
         val existingArticle = articleRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Статья с ID $id не найдена") }
-
         val newCategory = categoryRepository.findById(articleDto.categoryDto.id)
             .orElseThrow { IllegalArgumentException("Категория не найдена") }
-
-        // Проверяем по новой категории (куда перемещаем/обновляем)
         assertCanEditCategory(currentUser, newCategory)
-
         var newVideoPath = existingArticle.videoPath
         if (videoFile != null) {
             existingArticle.videoPath?.firstOrNull()?.let { fileStorageService.deleteFile(it) }
             newVideoPath = listOf(fileStorageService.saveFile(videoFile, "videos"))
         }
-
         var newFilePaths = existingArticle.filePath
         if (files != null && files.isNotEmpty()) {
             existingArticle.filePath?.forEach { fileStorageService.deleteFile(it) }
             newFilePaths = files.map { fileStorageService.saveFile(it, "files") }
         }
-
         val updatedArticle = existingArticle.copy(
             title = articleDto.title,
             description = articleDto.description,
@@ -255,12 +248,12 @@ class ArticleService(
             videoPath = newVideoPath,
             filePath = newFilePaths
         )
-
         val savedArticle = articleRepository.save(updatedArticle)
         indexingService.updateArticle(savedArticle)
-
-        // Снимок версии после обновления
         articleVersionService.createSnapshot(savedArticle, currentUser, "updated")
+
+        // НОВОЕ: отправляем уведомление об обновлении статьи
+        notificationService.notifyAboutArticleUpdate(savedArticle, currentUser)
 
         return articleMapper.toDto(savedArticle)
     }
@@ -354,18 +347,20 @@ class ArticleService(
             .orElseThrow { IllegalArgumentException("Статья не найдена") }
         assertCanEditCategory(currentUser, article.category)
 
-        // Сохраняем пути до удаления из БД
-        val videoPaths: List<String> = article.videoPath ?: emptyList()
-        val filePaths: List<String> = article.filePath ?: emptyList()
+        val videoPaths = article.videoPath ?: emptyList()
+        val filePaths = article.filePath ?: emptyList()
 
-        // 1) Удаляем запись из БД
+        // 1) удаляем зависимые записи просмотров
+        articleViewHitRepository.deleteByArticleId(id)
+
+        // 2) удаляем статью
         articleRepository.delete(article)
 
-        // 2) Пытаемся удалить физические файлы
-        videoPaths.forEach { path -> fileStorageService.deleteFile(path) }
-        filePaths.forEach { path -> fileStorageService.deleteFile(path) }
+        // 3) удаляем физические файлы
+        videoPaths.forEach { fileStorageService.deleteFile(it) }
+        filePaths.forEach { fileStorageService.deleteFile(it) }
 
+        // 4) чистим индексы (асинхронно) после успешного удаления
         indexingService.deleteArticle(id)
-        // Примечание: версии не удаляем здесь умышленно; при необходимости можно добавить каскадную очистку версий отдельным сервисом
     }
 }

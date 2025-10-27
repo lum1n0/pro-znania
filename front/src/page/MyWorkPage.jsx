@@ -1,224 +1,162 @@
-// src/pages/MyWorkPage.jsx
+// src/pages/MyArticlesPage.jsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { myWorkAPI, categoryAPI } from '../api/apiServese';
-import { sanitizeHtml } from '../utils/sanitizeHtml';
+import { Link, useLocation } from 'react-router-dom';
+import { myWorkAPI, categoryAPI } from '../api/apiServese.js';
+import { sanitizeHtml } from '../utils/sanitizeHtml.js';
 import '../style/MyWorkPage.css';
 
-// Простая конвертация Quill Delta -> плоский HTML
+const NAV_BUTTONS = [
+    { to: "/profile", label: "Профиль" },
+    { to: "/my/requests", label: "Мои заявки" },
+    { to: "/my/articles", label: "Мои работы" },
+    { to: "/favorites", label: "Закреплённые" },
+];
+
 const deltaToHtml = (delta) => {
-  try {
-    const d = typeof delta === 'string' ? JSON.parse(delta) : delta;
-    if (d && Array.isArray(d.ops)) {
-      return d.ops
-        .map(op => (typeof op.insert === 'string' ? op.insert.replace(/\n/g, '<br/>') : ''))
-        .join('');
-    }
-  } catch {
-    // игнорируем, вернём исходную строку ниже
-  }
-  return typeof delta === 'string' ? delta : '';
-};
-
-// Переводы действия/статуса
-const actionLabel = (a) => {
-  switch (a) {
-    case 'CREATE': return 'создание';
-    case 'UPDATE': return 'обновление';
-    default: return a?.toLowerCase();
-  }
-};
-const statusLabel = (s) => {
-  switch (s) {
-    case 'PENDING': return 'на модерации';
-    case 'APPROVED': return 'одобрено';
-    case 'REJECTED': return 'отклонено';
-    default: return s?.toLowerCase();
-  }
-};
-const statusClass = (s) => {
-  switch (s) {
-    case 'PENDING': return 'mywork-badge pending';
-    case 'APPROVED': return 'mywork-badge approved';
-    case 'REJECTED': return 'mywork-badge rejected';
-    default: return 'mywork-badge';
-  }
-};
-
-export default function MyWorkPage() {
-  const navigate = useNavigate();
-
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // раскрытые карточки
-  const [expanded, setExpanded] = useState(() => new Set());
-
-  // кэш категорий: id -> имя
-  const [categoryMap, setCategoryMap] = useState({});
-
-  const toggleExpand = (id) => {
-    setExpanded(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-
-  // данные «Мои работы»
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { data } = await myWorkAPI.getMyWork();
-        if (mounted) setItems(Array.isArray(data) ? data : []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  // список категорий для отображения имен
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const { data } = await categoryAPI.getAllCategories(0, 2000);
-        const content = data?.content || data || [];
-        const map = {};
-        content.forEach(c => {
-          if (c?.id != null) map[c.id] = c.description ?? `Категория #${c.id}`;
-        });
-        if (mounted) setCategoryMap(map);
-      } catch (e) {
-        console.error('Не удалось загрузить категории:', e);
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  const categoryName = (id) => categoryMap?.[id] ?? `Категория #${id}`;
-
-  const sortedItems = useMemo(() => {
-    const rank = { PENDING: 0, REJECTED: 1, APPROVED: 2 };
-    return [...items].sort((a, b) => {
-      const r = (rank[a.status] ?? 99) - (rank[b.status] ?? 99);
-      if (r !== 0) return r;
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    });
-  }, [items]);
-
-  // открыть в редакторе (для REJECTED)
-  const openInEditor = (p) => {
-    const preset = {
-      title: p.title,
-      description: deltaToHtml(p.description), // HTML-строка
-      categoryId: String(p.categoryId),
-      files: p.filePath || [],
-      videoPath: p.videoPath || [],
-      fromProposalId: p.id,
-    };
     try {
-      sessionStorage.setItem('editorPreset', JSON.stringify(preset));
-    } catch (e) {
-      console.warn('Не удалось сохранить preset в sessionStorage:', e);
-    }
-    if (p.action === 'CREATE' || p.articleId == null) {
-      navigate(`/create-article?categoryId=${p.categoryId}`, { state: { preset } });
-    } else {
-      navigate(`/article/${p.articleId}/edit`, { state: { preset } });
-    }
-  };
+        const d = typeof delta === 'string' ? JSON.parse(delta) : delta;
+        if (d && Array.isArray(d.ops)) {
+            return d.ops.map(op => (typeof op.insert === 'string' ? op.insert.replace(/\n/g, '<br>') : '')).join('');
+        }
+    } catch {}
+    return typeof delta === 'string' ? delta : '';
+};
 
-  if (loading) return <div className="mywork-loading">Загрузка…</div>;
+export default function MyArticlesPage() {
+    const location = useLocation();
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [categoryMap, setCategoryMap] = useState({});
 
-  return (
-    <div className="mywork-container">
-      <h1 className="mywork-title">Мои работы</h1>
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const { data } = await myWorkAPI.getMyWork();
+                if (mounted) setItems(Array.isArray(data) ? data : []);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
-      {/* Пустой список */}
-      {sortedItems.length === 0 ? (
-        <div className="mywork-empty">У вас нет статей</div>
-      ) : (
-        <div className="mywork-list">
-          {sortedItems.map(p => {
-            const isOpen = expanded.has(p.id);
-            const html = deltaToHtml(p.description);
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const { data } = await categoryAPI.getAllCategories(0, 2000);
+                const content = data?.content || data || [];
+                const map = {};
+                content.forEach(c => {
+                    if (c?.id != null) map[c.id] = c.description ?? `Категория #${c.id}`;
+                });
+                if (mounted) setCategoryMap(map);
+            } catch (e) {
+                console.error('Не удалось загрузить категории:', e);
+            }
+        })();
+        return () => { mounted = false; };
+    }, []);
 
-            return (
-              <div key={p.id} className={`mywork-card ${isOpen ? 'open' : ''}`}>
-                <div className="mywork-card-head" onClick={() => toggleExpand(p.id)}>
-                  <div className="mywork-head-left">
-                    <span className="mywork-action">
-                      Действие: <span className="mywork-accent">{actionLabel(p.action)}</span>
-                    </span>
-                    <span className={statusClass(p.status)}>{statusLabel(p.status)}</span>
-                    {p.rejectReason && (
-                      <span className="mywork-reason">Комментарий: {p.rejectReason}</span>
-                    )}
-                  </div>
-                  <div className="mywork-head-right">
-                    <span className="mywork-title-line">
-                      Заголовок: <span className="mywork-accent">{p.title}</span>
-                    </span>
-                    <span className="mywork-category">
-                      Категория: <span className="mywork-accent">{categoryName(p.categoryId)}</span>
-                    </span>
-                    <span className="mywork-date">
-                      Создано: {new Date(p.createdAt).toLocaleString()}
-                    </span>
-                  </div>
+    const categoryName = (id) => categoryMap?.[id] ?? `Категория #${id}`;
+
+    // Собираем все уникальные одобренные статьи
+    const articles = useMemo(() => {
+        // Группируем по articleId, чтобы избежать дублей
+        const articleMap = new Map();
+
+        items.forEach(item => {
+            // Берем только записи с articleId (это означает, что статья существует)
+            if (item.articleId != null) {
+                const existing = articleMap.get(item.articleId);
+
+                // Если статья уже есть, берем запись с более поздней датой или со статусом APPROVED
+                if (!existing ||
+                    item.status === 'APPROVED' ||
+                    new Date(item.createdAt) > new Date(existing.createdAt)) {
+                    articleMap.set(item.articleId, item);
+                }
+            }
+        });
+
+        // Возвращаем только одобренные статьи
+        return Array.from(articleMap.values()).filter(article => article.status === 'APPROVED');
+    }, [items]);
+
+    const sortedArticles = useMemo(() => {
+        return [...articles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }, [articles]);
+
+    if (loading) {
+        return (
+            <div className="myarticle-container">
+                <div className="myarticle-loading">
+                    <div className="spinner"></div>
+                    <span>Загрузка...</span>
                 </div>
+            </div>
+        );
+    }
 
-                {isOpen && (
-                  <div className="mywork-content">
-                    <div
-                      className="mywork-description html-content"
-                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
-                    />
+    return (
+        <div className="myarticle-container">
+            <div className="profile-nav">
+                {NAV_BUTTONS.map(btn => (
+                    <Link
+                        key={btn.to}
+                        to={btn.to}
+                        className={"profile-nav-btn" + (location.pathname === btn.to ? " active" : "")}
+                    >
+                        {btn.label}
+                    </Link>
+                ))}
+            </div>
 
-                    <div className="mywork-attachments">
-  <div className="mywork-files">
-    <div className="mywork-subtitle">Файлы:</div>
-    {Array.isArray(p?.filePath) && p.filePath.length > 0 ? (
-      <div>Приложен</div>
-    ) : (
-      <div className="mywork-dash">Не приложен</div>
-    )}
-  </div>
+            <h2 className="myarticle-title">Мои работы</h2>
 
-  <div className="mywork-video">
-    <div className="mywork-subtitle">Видео:</div>
-    {Array.isArray(p?.videoPath) && p.videoPath.length > 0 ? (
-      <div>Приложен</div>
-    ) : (
-      <div className="mywork-dash">Не приложен</div>
-    )}
-  </div>
-</div>
-
-
-                    {p.status === 'REJECTED' && (
-                      <div className="mywork-actions">
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => openInEditor(p)}
-                          title="Открыть редактор с содержимым отклонённой заявки"
+            {sortedArticles.length === 0 ? (
+                <div className="myarticle-empty">
+                    <svg className="myarticle-empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <p>У вас пока нет опубликованных статей</p>
+                </div>
+            ) : (
+                <div className="myarticle-list">
+                    {sortedArticles.map(article => (
+                        <Link
+                            key={article.articleId}
+                            to={`/article/${article.articleId}`}
+                            className="myarticle-card-link"
                         >
-                          Открыть в редакторе
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                            <div className="myarticle-card">
+                                <div className="myarticle-card-header">
+                                    <h3 className="myarticle-card-title">{article.title}</h3>
+                                    <span className="myarticle-category">{categoryName(article.categoryId)}</span>
+                                </div>
+                                <div
+                                    className="myarticle-excerpt"
+                                    dangerouslySetInnerHTML={{
+                                        __html: sanitizeHtml(deltaToHtml(article.description).substring(0, 200) + '...')
+                                    }}
+                                />
+                                <div className="myarticle-card-footer">
+                  <span className="myarticle-date">
+                    Опубликовано: {new Date(article.createdAt).toLocaleDateString('ru-RU')}
+                  </span>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }

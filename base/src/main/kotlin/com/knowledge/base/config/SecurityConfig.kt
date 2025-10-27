@@ -78,6 +78,10 @@ class SecurityConfig(
             .authenticationManager(customAuthenticationManager)
             .authorizeHttpRequests { auth ->
                 auth
+
+                    .requestMatchers("/api/notifications/send").hasAnyRole("ADMIN", "MODERATOR")
+                    .requestMatchers("/api/notifications").permitAll()
+
                     .requestMatchers("/api/user/login").permitAll()
                     .requestMatchers("/api/auth/refresh").permitAll()
                     .requestMatchers("/api/auth/logout").permitAll()

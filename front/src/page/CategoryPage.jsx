@@ -428,16 +428,40 @@ const checkWriterPermission = async (catId) => {
   };
 
   // === Функции для модальных окон ===
-  const openCreateChildModal = (parentCategoryItem) => {
-    setParentCategory(parentCategoryItem);
-    setNewCategory({
-      description: '',
-      iconPath: '',
-      accessRoles: [],
-      parentId: parentCategoryItem.id,
-    });
-    setShowCreateModal(true);
-  };
+    const openCreateChildModal = (parentCategoryItem) => {
+        setParentCategory(parentCategoryItem);
+
+        // ✅ Получаем роли доступа родительской категории для наследования
+        let inheritedAccessRoles = [];
+
+        if (parentCategoryItem.accessRolesDto && Array.isArray(parentCategoryItem.accessRolesDto)) {
+            // Копируем роли из accessRolesDto
+            inheritedAccessRoles = parentCategoryItem.accessRolesDto.map(role => ({
+                id: role.id,
+                title: role.title
+            }));
+        } else if (parentCategoryItem.accessRoles && Array.isArray(parentCategoryItem.accessRoles)) {
+            // Альтернативный вариант - accessRoles без Dto
+            inheritedAccessRoles = parentCategoryItem.accessRoles.map(role => ({
+                id: role.id,
+                title: role.title
+            }));
+        }
+
+        console.log('Создание подкатегории с наследованием ролей:', {
+            parentId: parentCategoryItem.id,
+            parentDescription: parentCategoryItem.description,
+            inheritedRoles: inheritedAccessRoles
+        });
+
+        setNewCategory({
+            description: '',
+            iconPath: '',
+            accessRoles: inheritedAccessRoles, // ✅ Наследуем роли от родительской категории
+            parentId: parentCategoryItem.id,
+        });
+        setShowCreateModal(true);
+    };
 
   const openEditForm = (category) => {
     setEditingCategory(category);

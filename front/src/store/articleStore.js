@@ -3,6 +3,30 @@ import { create } from 'zustand';
 import { articleAPI } from '../api/apiServese';
 import { articleVersionsAPI } from '../api/apiServese'; // Убедитесь, что импортирован
 import { logAction } from '../api/logClient';
+import { useNotificationStore } from './notificationStore';
+
+// Получение списка пользователей с доступом к категории/статье через API,
+// например, по accessRole или прямым назначениям (примеры ниже).
+
+async function notifyUsersAboutArticle({ article, type = 'created' }) {
+    const { sendToUsers, fetchAllUsers } = useNotificationStore.getState();
+    const users = await fetchAllUsers();
+    const accessRoleId = article.accessRoleId || article.categoryDto?.accessRoleId;
+    const hasRole = (u) =>
+        u.accessRoles &&
+        u.accessRoles.some((r) => r.id === accessRoleId);
+    const recipients = users.filter(hasRole).map(user => user.id);
+    const title = type === 'created'
+        ? `Создана новая статья: ${article.title}`
+        : `Статья обновлена: ${article.title}`;
+    // Включите articleId в message или используйте metadata
+    const message = `Статья "${article.title}" в категории #${article.categoryDto?.id || ''}${type === 'created' ? 'создана' : 'обновлена'} и доступна для вас. [articleId:${article.id}]`;
+    if (recipients.length) {
+        await sendToUsers(title, message, recipients);
+    }
+}
+
+
 
 export const useArticleStore = create((set, get) => ({
   articles: [],
@@ -283,15 +307,17 @@ export const useArticleStore = create((set, get) => ({
   },
 
   createArticle: async (formData) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await articleAPI.createArticle(formData);
-      const { articles } = get();
-      set({
-        articles: [...articles, response.data],
-        isLoading: false,
-      });
-      return response.data;
+      set({ isLoading: true, error: null });
+      try {
+          const response = await articleAPI.createArticle(formData);
+          const { articles } = get();
+          set({
+              articles: [...articles, response.data],
+              isLoading: false,
+          });
+          // Отправить уведомление
+          await notifyUsersAboutArticle({ article: response.data, type: 'created' });
+          return response.data;
     } catch (error) {
       console.error('Ошибка создания статьи:', error);
       set({
@@ -318,6 +344,7 @@ export const useArticleStore = create((set, get) => ({
         selectedArticle: get().selectedArticle?.id === Number(id) ? response.data : get().selectedArticle,
         isLoading: false,
       });
+      await notifyUsersAboutArticle({ article: response.data, type: 'updated' })
       return response.data;
     } catch (error) {
       console.error('Ошибка обновления статьи:', error);
