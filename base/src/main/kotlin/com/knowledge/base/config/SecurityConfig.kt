@@ -79,6 +79,15 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
 
+                    .requestMatchers("/api/stats/counters-articles",
+                        "/api/stats/counters-categories",
+                        "/api/stats/articles/frequency",
+                        "/api/stats/categories/frequency"
+                        ).hasRole("ADMIN")
+
+
+
+
                     .requestMatchers("/api/notifications/send").hasAnyRole("ADMIN", "MODERATOR")
                     .requestMatchers("/api/notifications").permitAll()
 

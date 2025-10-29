@@ -1,0 +1,314 @@
+/* Используйте тот же стиль, что и MyWorkPage.css, просто замените префикс mywork на myrequest */
+@keyframes cardFadeIn {
+    0% { opacity: 0; transform: translateY(18px);}
+    100% { opacity: 1; transform: none;}
+}
+
+[data-theme='dark'] .myrequest-container{
+
+    background: #061927;
+
+}
+
+
+
+.myrequest-container {
+    max-width: 1200px;
+    margin: 0 auto 26px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 43px #b9e7ef25;
+    padding: 34px 26px 34px 24px;
+    min-height: 76vh;
+    animation: cardFadeIn 0.55s cubic-bezier(.42,.18,.31,1);
+}
+
+.myrequest-title {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: #23294a;
+    margin: 0 0 24px;
+    letter-spacing: .01em;
+}
+
+.myrequest-loading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 16px;
+    color: #009aa3;
+    padding: 22px 0;
+}
+
+.myrequest-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.myrequest-card {
+    border-radius: 15px;
+    box-shadow: 0 3px 20px #bdeff117;
+    border: 1.2px solid #e8f0f8;
+    background: #f7fafc;
+    overflow: hidden;
+    transition: all 0.22s;
+    animation: cardFadeIn 0.45s;
+    cursor: pointer;
+}
+
+.myrequest-card:hover {
+    box-shadow: 0 4px 28px #87ced41d;
+    border-color: #8fd8e4;
+}
+
+.myrequest-card.open {
+    border-color: #009aa3;
+    background: #effcff;
+    box-shadow: 0 8px 30px #009aa30d;
+}
+
+.myrequest-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 17px 19px 14px 18px;
+    background: #f2fbfc;
+    border-radius: 15px 15px 0 0;
+}
+
+.myrequest-head-left, .myrequest-head-right {
+    display: flex;
+    gap: 13px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.myrequest-action, .myrequest-category, .myrequest-date {
+    font-size: 15.5px;
+    color: #21242e;
+}
+
+.myrequest-badge {
+    font-size: 13px;
+    padding: 2px 12px;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
+    font-weight: 600;
+    text-transform: lowercase;
+}
+
+.myrequest-badge.pending {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: #fdba74;
+}
+
+.myrequest-badge.approved {
+    background: #ecfdf5;
+    color: #12793c;
+    border-color: #6ee7b7;
+}
+
+.myrequest-badge.rejected {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+
+.myrequest-content {
+    padding: 13px 22px 18px 22px;
+    border-top: 1.4px dashed #e5e7eb;
+    background: #fff;
+}
+
+.myrequest-content-title {
+    font-size: 1.3rem;
+    color: #009aa3;
+}
+
+.myrequest-description {
+    border: 1px solid #e8f2fa;
+    background: #fafdff;
+    border-radius: 9px;
+    padding: 13px 14px 10px 14px;
+    font-size: 15.3px;
+    color: #363c56;
+    margin-bottom: 11px;
+    max-height: 380px;
+    overflow: auto;
+}
+
+.myrequest-reason {
+    color: #c41c31;
+    background: #fbeaea;
+    border-radius: 6px;
+    font-size: 14.1px;
+    padding: 9px 12px;
+    margin: 12px 0;
+}
+
+.myrequest-edit-btn {
+    background: #009aa3;
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.myrequest-edit-btn:hover {
+    background: #007d87;
+}
+
+.myrequest-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #727890;
+    font-size: 1.1rem;
+}
+
+
+/* Блок вложений */
+.myrequest-attachments {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #f9fcfd;
+    border: 1.5px solid #e1f0f3;
+    border-radius: 12px;
+}
+
+.myrequest-attachments-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #009aa3;
+    margin: 0 0 12px 0;
+    letter-spacing: .02em;
+}
+
+.myrequest-icon {
+    width: 20px;
+    height: 20px;
+    color: #009aa3;
+    flex-shrink: 0;
+}
+
+/* Сетка файлов */
+.myrequest-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+/* Карточка файла */
+.myrequest-file-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1.5px solid #e8f0f8;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.22s cubic-bezier(.43,.19,.18,.93);
+    cursor: pointer;
+}
+
+.myrequest-file-card:hover {
+    border-color: #009aa3;
+    background: #effcff;
+    box-shadow: 0 4px 16px #009aa315;
+    transform: translateY(-2px);
+}
+
+/* Иконка файла */
+.myrequest-file-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e1f6fa 0%, #d0f0f5 100%);
+    border-radius: 8px;
+    position: relative;
+}
+
+.myrequest-file-ext {
+    font-size: 11px;
+    font-weight: 700;
+    color: #009aa3;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+/* Иконка видео */
+.myrequest-video-card .myrequest-file-icon {
+    background: linear-gradient(135deg, #ffeef0 0%, #ffe0e3 100%);
+}
+
+.myrequest-video-icon svg {
+    width: 22px;
+    height: 22px;
+    color: #ff506a;
+}
+
+/* Информация о файле */
+.myrequest-file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.myrequest-file-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #21284e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.myrequest-file-card:hover .myrequest-file-name {
+    color: #009aa3;
+}
+
+
+[data-theme="dark"] .myrequest-date{
+
+    color: #1a1a1a;
+
+}
+
+[data-theme="dark"] .myrequest-category{
+
+    color: #1a1a1a;
+
+}
+[data-theme="dark"] .myrequest-action{
+
+    color: #1a1a1a;
+
+}
+
+[data-theme="dark"] .myrequest-file-name{
+
+    color: #1a1a1a;
+
+}
+
+/* Адаптив */
+@media (max-width: 600px) {
+    .myrequest-file-grid {
+        grid-template-columns: 1fr;
+    }
+}
